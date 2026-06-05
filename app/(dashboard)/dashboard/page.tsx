@@ -44,7 +44,6 @@ export default async function DashboardPage() {
 
   const kpis = [
     { title: "Today Production", value: todayProductionQty.toLocaleString(), sub: "Qty", icon: Layers, semantic: "prod" },
-    { title: "Target Achievement", value: `${achievement}%`, sub: "Avg", icon: Activity, semantic: "target" },
     { title: "Pending Dispatch", value: pendingDispatch.toLocaleString(), sub: "Qty", icon: Package, semantic: "dispatch" },
     { title: "Total Scrap", value: totalScrap.toLocaleString(), sub: "kg", icon: AlertTriangle, semantic: "scrap" },
     { title: "Total Expenses", value: `₹${monthlyExpenses.toLocaleString()}`, sub: "This Month", icon: IndianRupee, semantic: "expense" },

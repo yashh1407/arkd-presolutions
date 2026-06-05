@@ -48,7 +48,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const navItems = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, section: "Main" },
     { name: "Daily Production", href: "/production", icon: Hammer, section: "Production" },
-    { name: "Targets", href: "/targets", icon: Target, section: "Production" },
     { name: "Worker & Machine Log", href: "/workers", icon: Users, section: "Production" },
     { name: "Dispatch", href: "/dispatch", icon: Truck, section: "Production" },
     { name: "Scrap & Rejection", href: "/scrap", icon: Trash2, section: "Production" },
