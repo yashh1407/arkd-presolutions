@@ -16,11 +16,12 @@ import {
   Menu,
   LogOut,
   Target,
-  Banknote,
   Package,
   Database,
   Factory,
-  Briefcase
+  Briefcase,
+  CalendarCheck,
+  ClipboardList
 } from "lucide-react"
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -52,6 +53,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { name: "Worker & Machine Log", href: "/workers", icon: Users, section: "Production" },
     { name: "Dispatch", href: "/dispatch", icon: Truck, section: "Production" },
     { name: "Scrap & Rejection", href: "/scrap", icon: Trash2, section: "Production" },
+    { name: "Employee Logs", href: "/employee-logs", icon: ClipboardList, section: "Team" },
+    { name: "Attendance", href: "/attendance", icon: CalendarCheck, section: "Team" },
     { name: "Employees", href: "/employees", icon: Briefcase, section: "Team" },
     { name: "Machine Maintenance", href: "/maintenance", icon: Wrench, section: "Maintenance" },
     { name: "Expenses", href: "/expenses", icon: Banknote, section: "Finance" },

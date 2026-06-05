@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 import { Toaster } from "@/components/ui/sonner";
+import Script from "next/script";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -11,7 +12,9 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "ARKD Presolutions CRM",
-  description: "Manufacturing Management Dashboard",
+  description: "Internal CRM and production tracking system",
+  manifest: "/manifest.json",
+  themeColor: "#1E293B",
 };
 
 export default function RootLayout({
@@ -29,6 +32,22 @@ export default function RootLayout({
           {children}
           <Toaster position="top-right" />
         </Providers>
+        <Script id="register-sw" strategy="afterInteractive">
+          {`
+            if ('serviceWorker' in navigator) {
+              window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js').then(
+                  function(registration) {
+                    console.log('Service Worker registration successful with scope: ', registration.scope);
+                  },
+                  function(err) {
+                    console.log('Service Worker registration failed: ', err);
+                  }
+                );
+              });
+            }
+          `}
+        </Script>
       </body>
     </html>
   );

@@ -130,10 +130,91 @@ export async function initDB() {
         phone VARCHAR(20),
         department VARCHAR(100),
         designation VARCHAR(100),
+        password VARCHAR(255),
         joining_date DATE,
         salary DECIMAL(10, 2),
         address TEXT,
         status ENUM('Active', 'Inactive') DEFAULT 'Active',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+
+    // employee_attendance Table
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS employee_attendance (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        employee_id VARCHAR(50) NOT NULL,
+        date DATE NOT NULL,
+        shift VARCHAR(50),
+        check_in_time DATETIME,
+        check_out_time DATETIME,
+        total_working_hours DECIMAL(5,2),
+        check_in_location VARCHAR(255),
+        check_out_location VARCHAR(255),
+        check_in_photo TEXT,
+        check_out_photo TEXT,
+        status VARCHAR(50) DEFAULT 'Present',
+        remarks TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+
+    // production_logs Table
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS production_logs (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        log_id VARCHAR(50) UNIQUE,
+        employee_id VARCHAR(50) NOT NULL,
+        attendance_id INT,
+        date DATE NOT NULL,
+        shift VARCHAR(50),
+        department VARCHAR(100),
+        job_card_number VARCHAR(100),
+        work_order_number VARCHAR(100),
+        project_name VARCHAR(255),
+        material_name VARCHAR(255),
+        material_thickness VARCHAR(50),
+        material_size VARCHAR(100),
+        drawing_number VARCHAR(100),
+        supervisor_name VARCHAR(255),
+        
+        cutting_machine VARCHAR(100),
+        cutting_machine_id VARCHAR(100),
+        cutting_start_time DATETIME,
+        cutting_end_time DATETIME,
+        cutting_duration DECIMAL(5,2),
+        cutting_quantity INT DEFAULT 0,
+        cutting_dimensions VARCHAR(100),
+        cutting_scrap_quantity INT DEFAULT 0,
+        cutting_rejected_quantity INT DEFAULT 0,
+        cutting_machine_issue ENUM('Yes', 'No') DEFAULT 'No',
+        cutting_issue_description TEXT,
+
+        punching_machine VARCHAR(100),
+        punching_machine_id VARCHAR(100),
+        punching_start_time DATETIME,
+        punching_end_time DATETIME,
+        punching_duration DECIMAL(5,2),
+        punching_quantity INT DEFAULT 0,
+        punching_rejected_quantity INT DEFAULT 0,
+        punching_machine_issue ENUM('Yes', 'No') DEFAULT 'No',
+        punching_issue_description TEXT,
+
+        total_planned_quantity INT DEFAULT 0,
+        total_completed_quantity INT DEFAULT 0,
+        total_good_quantity INT DEFAULT 0,
+        total_rejected_quantity INT DEFAULT 0,
+        total_scrap_quantity INT DEFAULT 0,
+        pending_quantity INT DEFAULT 0,
+        
+        work_status VARCHAR(50),
+        final_remarks TEXT,
+        approval_status VARCHAR(50) DEFAULT 'Pending',
+        approved_by VARCHAR(255),
+        approved_at DATETIME,
+        
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       )
@@ -163,7 +244,8 @@ export async function initDB() {
       `ALTER TABLE production_entries ADD COLUMN cutting_middle_grade VARCHAR(255) NULL`,
       `ALTER TABLE production_entries ADD COLUMN cutting_middle_qty INT DEFAULT 0`,
       `ALTER TABLE production_entries ADD COLUMN cutting_inner_grade VARCHAR(255) NULL`,
-      `ALTER TABLE production_entries ADD COLUMN cutting_inner_qty INT DEFAULT 0`
+      `ALTER TABLE production_entries ADD COLUMN cutting_inner_qty INT DEFAULT 0`,
+      `ALTER TABLE employees ADD COLUMN password VARCHAR(255) NULL`
     ];
 
     for (const q of alterQueries) {

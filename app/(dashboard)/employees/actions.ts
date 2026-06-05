@@ -2,6 +2,7 @@
 
 import { pool, initDB } from "@/lib/db"
 import { revalidatePath } from "next/cache"
+import bcrypt from "bcrypt"
 
 export async function getEmployees() {
   try {
@@ -37,12 +38,15 @@ export async function saveEmployee(formData: FormData) {
     const salary = formData.get("salary") ? Number(formData.get("salary")) : null
     const address = formData.get("address") as string || null
     const status = formData.get("status") as string || 'Active'
+    
+    let password = formData.get("password") as string || "123456"
+    password = await bcrypt.hash(password, 10)
 
     const [result] = await pool.query(
       `INSERT INTO employees 
-       (employee_id, name, email, phone, department, designation, joining_date, salary, address, status) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [employee_id, name, email, phone, department, designation, joining_date, salary, address, status]
+       (employee_id, name, email, phone, department, designation, joining_date, salary, address, status, password) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [employee_id, name, email, phone, department, designation, joining_date, salary, address, status, password]
     )
 
     revalidatePath("/employees")
@@ -72,13 +76,24 @@ export async function updateEmployee(id: number, formData: FormData) {
     const salary = formData.get("salary") ? Number(formData.get("salary")) : null
     const address = formData.get("address") as string || null
     const status = formData.get("status") as string || 'Active'
+    const rawPassword = formData.get("password") as string
 
-    await pool.query(
-      `UPDATE employees 
-       SET employee_id = ?, name = ?, email = ?, phone = ?, department = ?, designation = ?, joining_date = ?, salary = ?, address = ?, status = ?
-       WHERE id = ?`,
-      [employee_id, name, email, phone, department, designation, joining_date, salary, address, status, id]
-    )
+    if (rawPassword) {
+      const hashedPassword = await bcrypt.hash(rawPassword, 10)
+      await pool.query(
+        `UPDATE employees 
+         SET employee_id = ?, name = ?, email = ?, phone = ?, department = ?, designation = ?, joining_date = ?, salary = ?, address = ?, status = ?, password = ?
+         WHERE id = ?`,
+        [employee_id, name, email, phone, department, designation, joining_date, salary, address, status, hashedPassword, id]
+      )
+    } else {
+      await pool.query(
+        `UPDATE employees 
+         SET employee_id = ?, name = ?, email = ?, phone = ?, department = ?, designation = ?, joining_date = ?, salary = ?, address = ?, status = ?
+         WHERE id = ?`,
+        [employee_id, name, email, phone, department, designation, joining_date, salary, address, status, id]
+      )
+    }
 
     revalidatePath("/employees")
     revalidatePath("/dashboard")

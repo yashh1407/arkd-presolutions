@@ -102,6 +102,17 @@ export function EmployeeFormDialog({ open, setOpen, employee, onSuccess }: Emplo
             </div>
 
             <div className="space-y-2">
+              <Label htmlFor="password" className="text-text-2 font-semibold">Password / PIN</Label>
+              <Input 
+                id="password" 
+                name="password" 
+                type="text"
+                placeholder={isEditing ? "Leave blank to keep current" : "Default: 123456"}
+                className="bg-surface"
+              />
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="department" className="text-text-2 font-semibold">Department</Label>
               <Input 
                 id="department" 

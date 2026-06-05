@@ -20,31 +20,53 @@ export const authOptions: NextAuthOptions = {
         await initDB()
 
         try {
-          // Using raw SQL instead of Prisma
-          const [rows] = await pool.query(
+          // Check Admin first
+          const [userRows] = await pool.query(
             'SELECT * FROM users WHERE email = ?',
             [credentials.email]
           ) as any[];
 
-          const user = rows[0];
+          const user = userRows[0];
 
-          if (!user || !user.password) {
-            throw new Error("Invalid credentials")
+          if (user && user.password) {
+            const isValid = await bcrypt.compare(credentials.password, user.password)
+            if (isValid) {
+              return {
+                id: user.id.toString(),
+                email: user.email,
+                name: user.name,
+                role: user.role,
+              }
+            }
           }
 
-          const isValid = await bcrypt.compare(credentials.password, user.password)
-          if (!isValid) {
-            throw new Error("Invalid credentials")
+          // If not Admin, check Employees by email, phone, or employee_id
+          const [empRows] = await pool.query(
+            'SELECT * FROM employees WHERE email = ? OR phone = ? OR employee_id = ?',
+            [credentials.email, credentials.email, credentials.email]
+          ) as any[];
+          
+          const employee = empRows[0];
+          
+          if (employee && employee.password) {
+             const isEmpValid = await bcrypt.compare(credentials.password, employee.password)
+             if (isEmpValid) {
+                return {
+                  id: employee.id.toString(),
+                  email: employee.email || employee.phone || employee.employee_id,
+                  name: employee.name,
+                  role: 'employee',
+                  employee_id: employee.employee_id
+                }
+             }
           }
 
-          return {
-            id: user.id.toString(),
-            email: user.email,
-            name: user.name,
-            role: user.role,
-          }
-        } catch (error) {
+          throw new Error("Invalid credentials")
+        } catch (error: any) {
           console.error("Database error in authorize:", error)
+          if (error.message === "Invalid credentials") {
+             throw error;
+          }
           throw new Error("Invalid credentials")
         }
       }
@@ -55,6 +77,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id
         token.role = user.role
+        token.employee_id = user.employee_id
       }
       return token
     },
@@ -64,6 +87,7 @@ export const authOptions: NextAuthOptions = {
           ...session.user,
           id: token.id as string,
           role: token.role as string,
+          employee_id: token.employee_id as string | undefined,
         }
       }
       return session
