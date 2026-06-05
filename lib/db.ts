@@ -120,6 +120,25 @@ export async function initDB() {
       )
     `);
 
+    // Employees Table
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS employees (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        employee_id VARCHAR(50) UNIQUE,
+        name VARCHAR(255) NOT NULL,
+        email VARCHAR(255),
+        phone VARCHAR(20),
+        department VARCHAR(100),
+        designation VARCHAR(100),
+        joining_date DATE,
+        salary DECIMAL(10, 2),
+        address TEXT,
+        status ENUM('Active', 'Inactive') DEFAULT 'Active',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+
     // 4. Safe, idempotent migrations (adding columns safely)
     try {
       await connection.query(`ALTER TABLE users ADD COLUMN phone VARCHAR(20) NULL`);

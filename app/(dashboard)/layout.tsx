@@ -19,7 +19,8 @@ import {
   Banknote,
   Package,
   Database,
-  Factory
+  Factory,
+  Briefcase
 } from "lucide-react"
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -51,6 +52,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { name: "Worker & Machine Log", href: "/workers", icon: Users, section: "Production" },
     { name: "Dispatch", href: "/dispatch", icon: Truck, section: "Production" },
     { name: "Scrap & Rejection", href: "/scrap", icon: Trash2, section: "Production" },
+    { name: "Employees", href: "/employees", icon: Briefcase, section: "Team" },
     { name: "Machine Maintenance", href: "/maintenance", icon: Wrench, section: "Maintenance" },
     { name: "Expenses", href: "/expenses", icon: Banknote, section: "Finance" },
     { name: "Material Issue", href: "/material-issue", icon: Package, section: "Inventory" },
