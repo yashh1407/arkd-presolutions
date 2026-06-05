@@ -1,0 +1,192 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  /* Default Shadcn Mappings */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  
+  /* Industrial Precision Custom Tokens */
+  --color-canvas: var(--bg-canvas);
+  --color-surface: var(--bg-surface);
+  --color-border-color: var(--border-color);
+  --color-text-1: var(--text-1);
+  --color-text-2: var(--text-2);
+  --color-text-3: var(--text-3);
+  --color-brand: var(--brand);
+  --color-brand-weak: var(--brand-weak);
+  
+  --color-accent-prod: var(--accent-prod);
+  --color-accent-target: var(--accent-target);
+  --color-accent-dispatch: var(--accent-dispatch);
+  --color-accent-scrap: var(--accent-scrap);
+  --color-accent-expense: var(--accent-expense);
+  
+  --color-status-ok: var(--status-ok);
+  --color-status-warning: var(--status-warning);
+  --color-status-down: var(--status-down);
+  --color-status-info: var(--status-info);
+
+  --radius-card: var(--radius-card);
+  --radius-chip: var(--radius-chip);
+  --radius-control: var(--radius-control);
+}
+
+:root {
+  /* Industrial Precision Base Tokens */
+  --bg-canvas: #F6F7F9;
+  --bg-surface: #FFFFFF;
+  --border-color: #E6E8EC;
+  --text-1: #0F172A;
+  --text-2: #64748B;
+  --text-3: #94A3B8;
+  --brand: #4F46E5;
+  --brand-weak: #EEF0FF;
+
+  /* KPI Semantics */
+  --accent-prod: #4F46E5;
+  --accent-target: #059669;
+  --accent-dispatch: #D97706;
+  --accent-scrap: #E11D48;
+  --accent-expense: #7C3AED;
+
+  /* Status Colors */
+  --status-ok: #10B981;
+  --status-warning: #F59E0B;
+  --status-down: #EF4444;
+  --status-info: #3B82F6;
+
+  /* Elevation / Shape */
+  --radius-card: 16px;
+  --radius-chip: 12px;
+  --radius-control: 10px;
+
+  /* Shadcn compatibility mappings */
+  --background: var(--bg-canvas);
+  --foreground: var(--text-1);
+  --card: var(--bg-surface);
+  --card-foreground: var(--text-1);
+  --popover: var(--bg-surface);
+  --popover-foreground: var(--text-1);
+  --primary: var(--brand);
+  --primary-foreground: #FFFFFF;
+  --secondary: var(--bg-canvas);
+  --secondary-foreground: var(--text-1);
+  --muted: var(--bg-canvas);
+  --muted-foreground: var(--text-2);
+  --accent: var(--brand-weak);
+  --accent-foreground: var(--brand);
+  --destructive: var(--status-down);
+  --destructive-foreground: #FFFFFF;
+  --border: var(--border-color);
+  --input: var(--border-color);
+  --ring: var(--brand);
+  --radius: 0.5rem;
+  
+  --sidebar: var(--bg-surface);
+  --sidebar-foreground: var(--text-1);
+  --sidebar-primary: var(--brand);
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: var(--brand-weak);
+  --sidebar-accent-foreground: var(--brand);
+  --sidebar-border: var(--border-color);
+  --sidebar-ring: var(--brand);
+}
+
+.dark {
+  /* Industrial Precision Base Tokens (Dark Theme) */
+  --bg-canvas: #0B1220;
+  --bg-surface: #121A2A;
+  --border-color: #1F2A3C;
+  --text-1: #F1F5F9;
+  --text-2: #94A3B8;
+  --text-3: #64748B;
+  --brand: #4F46E5;
+  --brand-weak: rgba(79, 70, 229, 0.12); /* Tint surface */
+
+  /* KPI Semantics (raised luminance ~10% for contrast) */
+  --accent-prod: #6366F1;
+  --accent-target: #10B981;
+  --accent-dispatch: #F59E0B;
+  --accent-scrap: #F43F5E;
+  --accent-expense: #8B5CF6;
+
+  --background: var(--bg-canvas);
+  --foreground: var(--text-1);
+  --card: var(--bg-surface);
+  --card-foreground: var(--text-1);
+  --popover: var(--bg-surface);
+  --popover-foreground: var(--text-1);
+  --primary: var(--brand);
+  --primary-foreground: #FFFFFF;
+  --secondary: var(--bg-canvas);
+  --secondary-foreground: var(--text-1);
+  --muted: var(--bg-canvas);
+  --muted-foreground: var(--text-2);
+  --accent: var(--brand-weak);
+  --accent-foreground: var(--brand);
+  --destructive: var(--status-down);
+  --destructive-foreground: #FFFFFF;
+  --border: var(--border-color);
+  --input: var(--border-color);
+  --ring: var(--brand);
+  
+  --sidebar: var(--text-1);
+  --sidebar-foreground: #FFFFFF;
+  --sidebar-primary: var(--brand);
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: var(--brand-weak);
+  --sidebar-accent-foreground: var(--brand);
+  --sidebar-border: var(--border-color);
+  --sidebar-ring: var(--brand);
+}
+
+@layer base {
+  * {
+    @apply border-border-color outline-brand/50;
+  }
+  body {
+    @apply bg-background text-text-1 antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Global Scrollbar Styling for a Premium Feel */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-border-color rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-text-3;
+  }
+}
+
+/* Utilities for completely hiding scrollbars but keeping scroll functionality */
+.custom-scrollbar {
+  -ms-overflow-style: none !important; /* IE and Edge */
+  scrollbar-width: none !important; /* Firefox */
+}
+.custom-scrollbar::-webkit-scrollbar {
+  display: none !important; /* Chrome, Safari and Opera */
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+}
