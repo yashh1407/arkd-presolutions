@@ -1,0 +1,10 @@
+
+> ARKD_Presolution_app@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.1.33:3000
+- Environments: .env
+✓ Ready in 1631ms
+Creating turbopack project { dir: 'E:\\ARKD CRM', testMode: true }

@@ -245,6 +245,15 @@ export async function initDB() {
       `ALTER TABLE production_entries ADD COLUMN cutting_middle_qty INT DEFAULT 0`,
       `ALTER TABLE production_entries ADD COLUMN cutting_inner_grade VARCHAR(255) NULL`,
       `ALTER TABLE production_entries ADD COLUMN cutting_inner_qty INT DEFAULT 0`,
+      `ALTER TABLE production_entries ADD COLUMN employee_id VARCHAR(50) NULL`,
+      `ALTER TABLE production_entries ADD COLUMN trolley_type VARCHAR(50) NULL`,
+      `ALTER TABLE production_entries ADD COLUMN punching_outer_tool VARCHAR(255) NULL`,
+      `ALTER TABLE production_entries ADD COLUMN punching_outer_qty INT DEFAULT 0`,
+      `ALTER TABLE production_entries ADD COLUMN punching_middle_tool VARCHAR(255) NULL`,
+      `ALTER TABLE production_entries ADD COLUMN punching_middle_qty INT DEFAULT 0`,
+      `ALTER TABLE production_entries ADD COLUMN punching_inner_tool VARCHAR(255) NULL`,
+      `ALTER TABLE production_entries ADD COLUMN punching_inner_qty INT DEFAULT 0`,
+      `ALTER TABLE production_entries ADD COLUMN punching_details JSON NULL`,
       `ALTER TABLE employees ADD COLUMN password VARCHAR(255) NULL`
     ];
 

@@ -76,7 +76,7 @@ export default function EmployeeClient({ initialEmployees }: { initialEmployees:
             />
           </div>
           
-          <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
+          <Select value={departmentFilter} onValueChange={(val) => setDepartmentFilter(val || "All")}>
             <SelectTrigger className="w-[160px] bg-surface border-border-color">
               <SelectValue placeholder="Department" />
             </SelectTrigger>
@@ -87,7 +87,7 @@ export default function EmployeeClient({ initialEmployees }: { initialEmployees:
             </SelectContent>
           </Select>
 
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <Select value={statusFilter} onValueChange={(val) => setStatusFilter(val || "All")}>
             <SelectTrigger className="w-[140px] bg-surface border-border-color">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
@@ -155,10 +155,8 @@ export default function EmployeeClient({ initialEmployees }: { initialEmployees:
                     </td>
                     <td className="px-6 py-4 text-right">
                       <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-text-3 hover:text-text-1">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
+                        <DropdownMenuTrigger render={<Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-text-3 hover:text-text-1" />}>
+                          <MoreHorizontal className="h-4 w-4" />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-40">
                           <DropdownMenuItem onClick={() => handleEdit(emp)} className="cursor-pointer">

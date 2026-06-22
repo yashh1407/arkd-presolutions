@@ -3,7 +3,7 @@ import EmployeeClient from "@/components/employees/employee-client"
 
 export default async function EmployeesPage() {
   const result = await getEmployees()
-  const initialEmployees = result.success ? result.data : []
+  const initialEmployees = result.success ? (result.data || []) : []
 
   return (
     <div className="space-y-6">

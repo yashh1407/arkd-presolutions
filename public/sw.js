@@ -1,6 +1,6 @@
 const CACHE_NAME = 'arkd-pwa-cache-v1';
 const urlsToCache = [
-  '/pwa/login',
+  '/app/login',
   '/logo.jpeg'
 ];
 

@@ -1,9 +1,9 @@
 {
-  "name": "tmp_app",
+  "name": "ARKD_Presolution_app",
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
@@ -41,7 +41,8 @@
     "eslint-config-next": "16.2.6",
     "tailwindcss": "^4",
     "tsx": "^4.22.3",
-    "typescript": "^5"
+    "typescript": "^5",
+    "xlsx": "^0.18.5"
   },
   "prisma": {
     "seed": "npx tsx prisma/seed.ts"

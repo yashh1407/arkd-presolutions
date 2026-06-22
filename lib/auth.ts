@@ -40,10 +40,10 @@ export const authOptions: NextAuthOptions = {
             }
           }
 
-          // If not Admin, check Employees by email, phone, or employee_id
+          // If not Admin, check Employees by email ONLY
           const [empRows] = await pool.query(
-            'SELECT * FROM employees WHERE email = ? OR phone = ? OR employee_id = ?',
-            [credentials.email, credentials.email, credentials.email]
+            'SELECT * FROM employees WHERE email = ?',
+            [credentials.email]
           ) as any[];
           
           const employee = empRows[0];

@@ -7,25 +7,46 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "sonner"
-import { PlusCircle, Save, Database, Hammer, Scissors, Ruler, CheckCircle } from "lucide-react"
-import { saveProductionEntry, getProductionEntries } from "./actions"
+import { PlusCircle, Save, Hammer, Scissors } from "lucide-react"
+import { saveProductionEntry } from "./actions"
+import { getEmployees } from "@/app/(dashboard)/employees/actions"
 
 
 
 export default function ProductionPage() {
   const [loading, setLoading] = useState(false)
-  const [punchingQty, setPunchingQty] = useState<number>(0)
-  const [entries, setEntries] = useState<any[]>([])
+  const [trolleyType, setTrolleyType] = useState<string>("")
+  const [employeeId, setEmployeeId] = useState<string>("")
 
-  const fetchEntries = async () => {
-    const result = await getProductionEntries()
+  const [employees, setEmployees] = useState<any[]>([])
+
+  const trolleyData: Record<string, any> = {
+    "55": {
+      outer: { grade: "365", tools: ["2-Hole punch", "Lancing punch", "Dip"] },
+      middle: { grade: "313", tools: ["5 hole punch", "Single Hole", "Apple-Cut", "Square"] },
+      inner: { grade: "273", tools: ["Double Hole", "Square"] }
+    },
+    "65": {
+      outer: { grade: "465", tools: ["3-Hole", "Single Hole", "Lancing", "Dip"] },
+      middle: { grade: "443", tools: ["Double-Hole", "Square"] },
+      inner: null
+    },
+    "75": {
+      outer: { grade: "565", tools: ["3-Hole", "Single hole", "Lancing", "Dip"] },
+      middle: { grade: "353", tools: ["Double hole", "Square"] },
+      inner: null
+    }
+  }
+
+  const fetchEmployees = async () => {
+    const result = await getEmployees()
     if (result.success) {
-      setEntries(result.data)
+      setEmployees(result.data || [])
     }
   }
 
   useEffect(() => {
-    fetchEntries()
+    fetchEmployees()
   }, [])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -33,22 +54,22 @@ export default function ProductionPage() {
     setLoading(true)
     
     const formData = new FormData(e.currentTarget)
-    // Pass punchingQty as finalQty for DB completeness
-    formData.append("finalQty", punchingQty.toString())
     
     const result = await saveProductionEntry(formData)
     
     if (result.success) {
-      toast.success("Production entry saved successfully!")
+      toast.success("Production saved to Employee Work Logs.")
       ;(e.target as HTMLFormElement).reset()
-      setPunchingQty(0)
-      fetchEntries()
+      setEmployeeId("")
+      setTrolleyType("")
     } else {
       toast.error(result.error || "Failed to save entry")
     }
     
     setLoading(false)
   }
+
+  const selectedEmployeeName = employees.find((emp) => emp.employee_id === employeeId)?.name || ""
 
   return (
     <div className="space-y-6">
@@ -62,11 +83,31 @@ export default function ProductionPage() {
         <CardContent className="pt-6">
           <form onSubmit={handleSubmit} className="space-y-8">
             
-            {/* 1. Date */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <div className="space-y-2 md:col-span-1">
+            {/* 1. Date & Employee */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
                 <Label className="text-sm text-slate-700 font-semibold">Date</Label>
                 <Input name="date" type="date" required className="bg-slate-50 border-slate-200 focus-visible:ring-blue-600 shadow-sm" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm text-slate-700 font-semibold">Employee</Label>
+                <Select name="employeeId" value={employeeId} onValueChange={(value) => setEmployeeId(value ?? "")}>
+                  <SelectTrigger className="bg-white border-slate-200 focus-visible:ring-blue-600 shadow-sm">
+                    <span className={`min-w-0 truncate ${selectedEmployeeName ? "text-slate-900" : "text-slate-400"}`}>
+                      {selectedEmployeeName || "No employee selected"}
+                    </span>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="" className="text-slate-500 italic">
+                      No employee
+                    </SelectItem>
+                    {employees.filter(emp => emp.employee_id).map(emp => (
+                      <SelectItem key={emp.employee_id || emp.id} value={emp.employee_id}>
+                        {emp.name || "Unnamed employee"}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -85,6 +126,7 @@ export default function ProductionPage() {
                       <SelectValue placeholder="Select Machine" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="" className="text-slate-400 italic">Select Machine</SelectItem>
                       <SelectItem value="Cutting 1">Cutting 1</SelectItem>
                       <SelectItem value="Cutting 2">Cutting 2</SelectItem>
                     </SelectContent>
@@ -103,7 +145,10 @@ export default function ProductionPage() {
                           <SelectValue placeholder="Grade" />
                         </SelectTrigger>
                         <SelectContent>
+                          <SelectItem value="" className="text-slate-400 italic">Grade</SelectItem>
                           <SelectItem value="365">Outer - 365</SelectItem>
+                          <SelectItem value="465">Outer - 465</SelectItem>
+                          <SelectItem value="565">Outer - 565</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -122,8 +167,10 @@ export default function ProductionPage() {
                           <SelectValue placeholder="Grade" />
                         </SelectTrigger>
                         <SelectContent>
+                          <SelectItem value="" className="text-slate-400 italic">Grade</SelectItem>
                           <SelectItem value="313">Middle - 313</SelectItem>
-                          <SelectItem value="273">Middle - 273</SelectItem>
+                          <SelectItem value="443">Middle - 443</SelectItem>
+                          <SelectItem value="353">Middle - 353</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -142,9 +189,8 @@ export default function ProductionPage() {
                           <SelectValue placeholder="Grade" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="465">Inner - 465</SelectItem>
-                          <SelectItem value="443">Inner - 443</SelectItem>
-                          <SelectItem value="565">Inner - 565</SelectItem>
+                          <SelectItem value="" className="text-slate-400 italic">Grade</SelectItem>
+                          <SelectItem value="273">Inner - 273</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -158,38 +204,77 @@ export default function ProductionPage() {
 
               {/* 3. Punching Stage */}
               <div className="bg-purple-50/30 p-5 rounded-xl border border-purple-100 space-y-5">
-                <div className="text-sm font-bold text-purple-800 flex items-center gap-2 border-b border-purple-100 pb-2">
-                  <Hammer className="w-4 h-4" />
-                  Punching Stage
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-xs text-slate-600 font-semibold">Machine</Label>
-                    <Select name="punchingMachine">
-                      <SelectTrigger className="bg-white border-slate-200 focus-visible:ring-purple-600">
-                        <SelectValue placeholder="Select Machine" />
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4 border-b border-purple-100 pb-2">
+                  <div className="text-sm font-bold text-purple-800 flex items-center gap-2">
+                    <Hammer className="w-4 h-4" />
+                    Punching Stage
+                  </div>
+                  <div className="flex items-center gap-3 ml-auto">
+                    <Label className="text-sm text-slate-700 font-semibold">Trolley Details</Label>
+                    <Select name="trolleyType" value={trolleyType} onValueChange={(value) => setTrolleyType(value ?? "")}>
+                      <SelectTrigger className="bg-white border-slate-200 w-[120px] focus-visible:ring-purple-600">
+                        <SelectValue placeholder="Select" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Punching 1">Punching 1</SelectItem>
-                        <SelectItem value="Punching 2">Punching 2</SelectItem>
-                        <SelectItem value="Punching 3">Punching 3</SelectItem>
-                        <SelectItem value="Punching 4">Punching 4</SelectItem>
+                        <SelectItem value="" className="text-slate-400 italic">None</SelectItem>
+                        <SelectItem value="55">55</SelectItem>
+                        <SelectItem value="65">65</SelectItem>
+                        <SelectItem value="75">75</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-xs text-slate-600 font-semibold">Punched Quantity</Label>
-                    <Input 
-                      name="punchingQty" 
-                      type="number" 
-                      min="0"
-                      placeholder="0" 
-                      value={punchingQty || ""}
-                      onChange={(e) => setPunchingQty(Number(e.target.value))}
-                      className="bg-white border-slate-200 focus-visible:ring-purple-600 font-medium" 
-                    />
-                  </div>
                 </div>
+                
+                {trolleyType ? (
+                  <div className="space-y-4">
+                    {/* Outer Punching */}
+                    <div className="bg-white p-4 rounded-lg border border-purple-100 shadow-sm space-y-4">
+                      <Label className="text-sm text-slate-700 font-bold border-b border-slate-100 pb-2 block">Outer Tools ({trolleyData[trolleyType].outer.grade})</Label>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                        {trolleyData[trolleyType].outer.tools.map((tool: string) => (
+                          <div key={tool} className="space-y-1">
+                            <Label className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">{tool}</Label>
+                            <Input name={`tool_outer_${tool}`} type="number" min="0" placeholder="0" className="bg-slate-50 focus-visible:ring-purple-600" />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Middle Punching */}
+                    {trolleyData[trolleyType].middle && (
+                      <div className="bg-white p-4 rounded-lg border border-purple-100 shadow-sm space-y-4">
+                        <Label className="text-sm text-slate-700 font-bold border-b border-slate-100 pb-2 block">Middle Tools ({trolleyData[trolleyType].middle.grade})</Label>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                          {trolleyData[trolleyType].middle.tools.map((tool: string) => (
+                            <div key={tool} className="space-y-1">
+                              <Label className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">{tool}</Label>
+                              <Input name={`tool_middle_${tool}`} type="number" min="0" placeholder="0" className="bg-slate-50 focus-visible:ring-purple-600" />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Inner Punching */}
+                    {trolleyData[trolleyType].inner && (
+                      <div className="bg-white p-4 rounded-lg border border-purple-100 shadow-sm space-y-4">
+                        <Label className="text-sm text-slate-700 font-bold border-b border-slate-100 pb-2 block">Inner Tools ({trolleyData[trolleyType].inner.grade})</Label>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                          {trolleyData[trolleyType].inner.tools.map((tool: string) => (
+                            <div key={tool} className="space-y-1">
+                              <Label className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">{tool}</Label>
+                              <Input name={`tool_inner_${tool}`} type="number" min="0" placeholder="0" className="bg-slate-50 focus-visible:ring-purple-600" />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-sm text-slate-500 italic p-4 bg-white rounded-lg border border-purple-100 text-center">
+                    Please select a Trolley Type in the Punching Stage to view available Punching Tools.
+                  </div>
+                )}
               </div>
             </div>
 
@@ -202,59 +287,13 @@ export default function ProductionPage() {
                 ) : (
                   <Save className="w-5 h-5" />
                 )}
-                {loading ? "Saving Entry..." : "Save Production Log"}
+                {loading ? "Saving Entry..." : "Save Production"}
               </Button>
             </div>
           </form>
         </CardContent>
       </Card>
 
-      {/* Production Log */}
-      <Card className="bg-white border-slate-200 shadow-sm">
-        <CardHeader className="border-b border-slate-100 pb-4">
-          <CardTitle className="text-lg font-bold text-slate-900">Production Log</CardTitle>
-        </CardHeader>
-        <CardContent className="pt-6">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left text-slate-600">
-              <thead className="text-xs text-slate-700 uppercase bg-slate-50 border-b border-slate-200">
-                <tr>
-                  <th className="px-4 py-3">ID</th>
-                  <th className="px-4 py-3">Date</th>
-                  <th className="px-4 py-3">Cutting</th>
-                  <th className="px-4 py-3">Punching</th>
-                </tr>
-              </thead>
-              <tbody>
-                {entries.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="text-center py-8 text-slate-500">No production entries found.</td>
-                  </tr>
-                ) : (
-                  entries.map((entry) => (
-                    <tr key={entry.id} className="border-b border-slate-100 hover:bg-slate-50">
-                      <td className="px-4 py-3 font-medium text-slate-900">#{entry.id}</td>
-                      <td className="px-4 py-3">{entry.date}</td>
-                      <td className="px-4 py-3">
-                        <div className="text-xs">
-                          {entry.cutting_machine && <div>{entry.cutting_machine}</div>}
-                          {entry.cutting_outer_qty > 0 && <span className="text-blue-600">O:{entry.cutting_outer_qty} </span>}
-                          {entry.cutting_middle_qty > 0 && <span className="text-blue-600">M:{entry.cutting_middle_qty} </span>}
-                          {entry.cutting_inner_qty > 0 && <span className="text-blue-600">I:{entry.cutting_inner_qty}</span>}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        {entry.punching_machine && <div className="text-xs">{entry.punching_machine}</div>}
-                        {entry.punching_qty}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   )
 }
