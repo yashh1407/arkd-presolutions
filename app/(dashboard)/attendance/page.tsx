@@ -111,7 +111,7 @@ export default async function AttendancePage({ searchParams }: AttendancePagePro
     <div className="space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-bold text-text-1">Employee Attendance</h1>
+          <h1 className="text-2xl font-bold text-text-1 sm:hidden">Employee Attendance</h1>
           <p className="text-sm text-text-3">Daily check-ins, check-outs, and working hours.</p>
         </div>
         <div className="rounded-chip bg-surface px-4 py-2 text-sm font-bold text-text-2 shadow-sm ring-1 ring-border-color">

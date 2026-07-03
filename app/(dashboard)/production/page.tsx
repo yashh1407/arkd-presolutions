@@ -10,15 +10,23 @@ import { toast } from "sonner"
 import { PlusCircle, Save, Hammer, Scissors } from "lucide-react"
 import { saveProductionEntry } from "./actions"
 import { getEmployees } from "@/app/(dashboard)/employees/actions"
+import { cn } from "@/lib/utils"
 
 
 
 export default function ProductionPage() {
   const [loading, setLoading] = useState(false)
   const [trolleyType, setTrolleyType] = useState<string>("")
-  const [employeeId, setEmployeeId] = useState<string>("")
 
   const [employees, setEmployees] = useState<any[]>([])
+  const [selectedDate, setSelectedDate] = useState<string>("")
+  const [selectedWorkers, setSelectedWorkers] = useState<Record<string, string>>({})
+
+  const getWorkerName = (id?: string) => {
+    if (!id) return "+ Assign Worker"
+    const emp = employees.find(e => e.employee_id === id)
+    return emp ? emp.name : "+ Assign Worker"
+  }
 
   const trolleyData: Record<string, any> = {
     "55": {
@@ -47,6 +55,13 @@ export default function ProductionPage() {
 
   useEffect(() => {
     fetchEmployees()
+    
+    // Set default date to today on mount
+    const today = new Date()
+    const yyyy = today.getFullYear()
+    const mm = String(today.getMonth() + 1).padStart(2, "0")
+    const dd = String(today.getDate()).padStart(2, "0")
+    setSelectedDate(`${yyyy}-${mm}-${dd}`)
   }, [])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -60,16 +75,14 @@ export default function ProductionPage() {
     if (result.success) {
       toast.success("Production saved to Employee Work Logs.")
       ;(e.target as HTMLFormElement).reset()
-      setEmployeeId("")
       setTrolleyType("")
+      setSelectedWorkers({})
     } else {
       toast.error(result.error || "Failed to save entry")
     }
     
     setLoading(false)
   }
-
-  const selectedEmployeeName = employees.find((emp) => emp.employee_id === employeeId)?.name || ""
 
   return (
     <div className="space-y-6">
@@ -83,31 +96,18 @@ export default function ProductionPage() {
         <CardContent className="pt-6">
           <form onSubmit={handleSubmit} className="space-y-8">
             
-            {/* 1. Date & Employee */}
+            {/* 1. Date */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label className="text-sm text-slate-700 font-semibold">Date</Label>
-                <Input name="date" type="date" required className="bg-slate-50 border-slate-200 focus-visible:ring-blue-600 shadow-sm" />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-sm text-slate-700 font-semibold">Employee</Label>
-                <Select name="employeeId" value={employeeId} onValueChange={(value) => setEmployeeId(value ?? "")}>
-                  <SelectTrigger className="bg-white border-slate-200 focus-visible:ring-blue-600 shadow-sm">
-                    <span className={`min-w-0 truncate ${selectedEmployeeName ? "text-slate-900" : "text-slate-400"}`}>
-                      {selectedEmployeeName || "No employee selected"}
-                    </span>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="" className="text-slate-500 italic">
-                      No employee
-                    </SelectItem>
-                    {employees.filter(emp => emp.employee_id).map(emp => (
-                      <SelectItem key={emp.employee_id || emp.id} value={emp.employee_id}>
-                        {emp.name || "Unnamed employee"}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Input 
+                  name="date" 
+                  type="date" 
+                  required 
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="bg-slate-50 border-slate-200 focus-visible:ring-blue-600 shadow-sm w-full md:w-1/2" 
+                />
               </div>
             </div>
 
@@ -134,86 +134,11 @@ export default function ProductionPage() {
                 </div>
 
                 <div className="space-y-4 pt-2 border-t border-blue-100/50">
-                  <Label className="text-sm text-slate-700 font-semibold">Trolley Details</Label>
-                  
-                  {/* Outer Trolley */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-xs text-slate-600 font-semibold">Outer Grade</Label>
-                      <Select name="cuttingOuterGrade">
-                        <SelectTrigger className="bg-white border-slate-200">
-                          <SelectValue placeholder="Grade" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="" className="text-slate-400 italic">Grade</SelectItem>
-                          <SelectItem value="365">Outer - 365</SelectItem>
-                          <SelectItem value="465">Outer - 465</SelectItem>
-                          <SelectItem value="565">Outer - 565</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-xs text-slate-600 font-semibold">Outer Qty</Label>
-                      <Input name="cuttingOuterQty" type="number" min="0" placeholder="0" className="bg-white" />
-                    </div>
-                  </div>
-
-                  {/* Middle Trolley */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-xs text-slate-600 font-semibold">Middle Grade</Label>
-                      <Select name="cuttingMiddleGrade">
-                        <SelectTrigger className="bg-white border-slate-200">
-                          <SelectValue placeholder="Grade" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="" className="text-slate-400 italic">Grade</SelectItem>
-                          <SelectItem value="313">Middle - 313</SelectItem>
-                          <SelectItem value="443">Middle - 443</SelectItem>
-                          <SelectItem value="353">Middle - 353</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-xs text-slate-600 font-semibold">Middle Qty</Label>
-                      <Input name="cuttingMiddleQty" type="number" min="0" placeholder="0" className="bg-white" />
-                    </div>
-                  </div>
-
-                  {/* Inner Trolley */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-xs text-slate-600 font-semibold">Inner Grade</Label>
-                      <Select name="cuttingInnerGrade">
-                        <SelectTrigger className="bg-white border-slate-200">
-                          <SelectValue placeholder="Grade" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="" className="text-slate-400 italic">Grade</SelectItem>
-                          <SelectItem value="273">Inner - 273</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-xs text-slate-600 font-semibold">Inner Qty</Label>
-                      <Input name="cuttingInnerQty" type="number" min="0" placeholder="0" className="bg-white" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* 3. Punching Stage */}
-              <div className="bg-purple-50/30 p-5 rounded-xl border border-purple-100 space-y-5">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-4 border-b border-purple-100 pb-2">
-                  <div className="text-sm font-bold text-purple-800 flex items-center gap-2">
-                    <Hammer className="w-4 h-4" />
-                    Punching Stage
-                  </div>
-                  <div className="flex items-center gap-3 ml-auto">
+                  <div className="flex items-center gap-2">
                     <Label className="text-sm text-slate-700 font-semibold">Trolley Details</Label>
-                    <Select name="trolleyType" value={trolleyType} onValueChange={(value) => setTrolleyType(value ?? "")}>
-                      <SelectTrigger className="bg-white border-slate-200 w-[120px] focus-visible:ring-purple-600">
-                        <SelectValue placeholder="Select" />
+                    <Select name="cuttingTrolleyType" value={trolleyType} onValueChange={(value) => setTrolleyType(value ?? "")}>
+                      <SelectTrigger className="bg-white border-slate-200 w-[70px] h-8 text-xs focus-visible:ring-blue-600">
+                        <SelectValue placeholder="-" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="" className="text-slate-400 italic">None</SelectItem>
@@ -223,18 +148,239 @@ export default function ProductionPage() {
                       </SelectContent>
                     </Select>
                   </div>
+                  
+                  {trolleyType ? (
+                    <div className="space-y-3 mt-3">
+                      {/* Outer Grade */}
+                      {trolleyData[trolleyType].outer && (
+                        <div className="p-4 bg-white border border-slate-200 rounded-xl shadow-sm hover:border-blue-300 hover:shadow-md transition-all space-y-3">
+                          <div className="flex items-center justify-between bg-slate-50/80 border-b border-slate-100 px-4 py-2.5 -mx-4 -mt-4 rounded-t-xl mb-4">
+                            <div className="flex items-center gap-2">
+                              <div className="w-1 h-3.5 rounded bg-blue-600"></div>
+                              <span className="text-xs font-bold text-slate-700 tracking-wider uppercase">Outer Grade</span>
+                            </div>
+                            <span className="inline-flex items-center bg-blue-50 text-blue-700 text-xs font-black px-3 py-1 rounded-full border border-blue-200/60 shadow-xs">
+                              {trolleyData[trolleyType].outer.grade}
+                            </span>
+                          </div>
+                          <input type="hidden" name="cuttingOuterGrade" value={trolleyData[trolleyType].outer.grade} />
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div className="space-y-1">
+                              <Label className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider block mb-1">Worker</Label>
+                              <Select 
+                                name="cuttingOuterEmployeeId"
+                                value={selectedWorkers.cuttingOuterEmployeeId || ""}
+                                onValueChange={(val) => setSelectedWorkers(prev => ({ ...prev, cuttingOuterEmployeeId: val ?? "" }))}
+                              >
+                                <SelectTrigger className={cn(
+                                  "rounded-full h-8 text-xs transition-all px-3 w-fit",
+                                  selectedWorkers.cuttingOuterEmployeeId
+                                    ? "bg-blue-50 border-blue-200 text-blue-700 font-semibold hover:bg-blue-100 hover:border-blue-300"
+                                    : "bg-slate-50/50 border-dashed border-slate-200 text-slate-400 hover:bg-slate-100 hover:border-slate-300"
+                                )}>
+                                  <span>{getWorkerName(selectedWorkers.cuttingOuterEmployeeId)}</span>
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="" className="text-slate-400 italic">None</SelectItem>
+                                  {employees.filter(emp => emp.employee_id).map(emp => (
+                                    <SelectItem key={emp.employee_id} value={emp.employee_id}>
+                                      {emp.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider block">Good Qty</Label>
+                              <Input name="cuttingOuterQty" type="number" min="0" placeholder="0" className="bg-white border-slate-200 h-9 text-sm font-semibold focus-visible:ring-blue-600" />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider block">Scrap Qty</Label>
+                              <Input name="cuttingOuterScrap" type="number" min="0" placeholder="0" className="bg-white border-slate-200 h-9 text-sm font-semibold focus-visible:ring-blue-600" />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Middle Grade */}
+                      {trolleyData[trolleyType].middle && (
+                        <div className="p-4 bg-white border border-slate-200 rounded-xl shadow-sm hover:border-blue-300 hover:shadow-md transition-all space-y-3">
+                          <div className="flex items-center justify-between bg-slate-50/80 border-b border-slate-100 px-4 py-2.5 -mx-4 -mt-4 rounded-t-xl mb-4">
+                            <div className="flex items-center gap-2">
+                              <div className="w-1 h-3.5 rounded bg-blue-600"></div>
+                              <span className="text-xs font-bold text-slate-700 tracking-wider uppercase">Middle Grade</span>
+                            </div>
+                            <span className="inline-flex items-center bg-blue-50 text-blue-700 text-xs font-black px-3 py-1 rounded-full border border-blue-200/60 shadow-xs">
+                              {trolleyData[trolleyType].middle.grade}
+                            </span>
+                          </div>
+                          <input type="hidden" name="cuttingMiddleGrade" value={trolleyData[trolleyType].middle.grade} />
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div className="space-y-1">
+                              <Label className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider block mb-1">Worker</Label>
+                              <Select 
+                                name="cuttingMiddleEmployeeId"
+                                value={selectedWorkers.cuttingMiddleEmployeeId || ""}
+                                onValueChange={(val) => setSelectedWorkers(prev => ({ ...prev, cuttingMiddleEmployeeId: val ?? "" }))}
+                              >
+                                <SelectTrigger className={cn(
+                                  "rounded-full h-8 text-xs transition-all px-3 w-fit",
+                                  selectedWorkers.cuttingMiddleEmployeeId
+                                    ? "bg-blue-50 border-blue-200 text-blue-700 font-semibold hover:bg-blue-100 hover:border-blue-300"
+                                    : "bg-slate-50/50 border-dashed border-slate-200 text-slate-400 hover:bg-slate-100 hover:border-slate-300"
+                                )}>
+                                  <span>{getWorkerName(selectedWorkers.cuttingMiddleEmployeeId)}</span>
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="" className="text-slate-400 italic">None</SelectItem>
+                                  {employees.filter(emp => emp.employee_id).map(emp => (
+                                    <SelectItem key={emp.employee_id} value={emp.employee_id}>
+                                      {emp.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider block">Good Qty</Label>
+                              <Input name="cuttingMiddleQty" type="number" min="0" placeholder="0" className="bg-white border-slate-200 h-9 text-sm font-semibold focus-visible:ring-blue-600" />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider block">Scrap Qty</Label>
+                              <Input name="cuttingMiddleScrap" type="number" min="0" placeholder="0" className="bg-white border-slate-200 h-9 text-sm font-semibold focus-visible:ring-blue-600" />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Inner Grade */}
+                      {trolleyData[trolleyType].inner && (
+                        <div className="p-4 bg-white border border-slate-200 rounded-xl shadow-sm hover:border-blue-300 hover:shadow-md transition-all space-y-3">
+                          <div className="flex items-center justify-between bg-slate-50/80 border-b border-slate-100 px-4 py-2.5 -mx-4 -mt-4 rounded-t-xl mb-4">
+                            <div className="flex items-center gap-2">
+                              <div className="w-1 h-3.5 rounded bg-blue-600"></div>
+                              <span className="text-xs font-bold text-slate-700 tracking-wider uppercase">Inner Grade</span>
+                            </div>
+                            <span className="inline-flex items-center bg-blue-50 text-blue-700 text-xs font-black px-3 py-1 rounded-full border border-blue-200/60 shadow-xs">
+                              {trolleyData[trolleyType].inner.grade}
+                            </span>
+                          </div>
+                          <input type="hidden" name="cuttingInnerGrade" value={trolleyData[trolleyType].inner.grade} />
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div className="space-y-1">
+                              <Label className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider block mb-1">Worker</Label>
+                              <Select 
+                                name="cuttingInnerEmployeeId"
+                                value={selectedWorkers.cuttingInnerEmployeeId || ""}
+                                onValueChange={(val) => setSelectedWorkers(prev => ({ ...prev, cuttingInnerEmployeeId: val ?? "" }))}
+                              >
+                                <SelectTrigger className={cn(
+                                  "rounded-full h-8 text-xs transition-all px-3 w-fit",
+                                  selectedWorkers.cuttingInnerEmployeeId
+                                    ? "bg-blue-50 border-blue-200 text-blue-700 font-semibold hover:bg-blue-100 hover:border-blue-300"
+                                    : "bg-slate-50/50 border-dashed border-slate-200 text-slate-400 hover:bg-slate-100 hover:border-slate-300"
+                                )}>
+                                  <span>{getWorkerName(selectedWorkers.cuttingInnerEmployeeId)}</span>
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="" className="text-slate-400 italic">None</SelectItem>
+                                  {employees.filter(emp => emp.employee_id).map(emp => (
+                                    <SelectItem key={emp.employee_id} value={emp.employee_id}>
+                                      {emp.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider block">Good Qty</Label>
+                              <Input name="cuttingInnerQty" type="number" min="0" placeholder="0" className="bg-white border-slate-200 h-9 text-sm font-semibold focus-visible:ring-blue-600" />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider block">Scrap Qty</Label>
+                              <Input name="cuttingInnerScrap" type="number" min="0" placeholder="0" className="bg-white border-slate-200 h-9 text-sm font-semibold focus-visible:ring-blue-600" />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-xs text-slate-500 italic mt-2">
+                      Select a Trolley Type to view cutting grades.
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* 3. Punching Stage */}
+              <div className="bg-purple-50/30 p-5 rounded-xl border border-purple-100 space-y-5">
+                <div className="text-sm font-bold text-purple-800 flex items-center gap-2 border-b border-purple-100 pb-2">
+                  <Hammer className="w-4 h-4" />
+                  Punching Stage
                 </div>
                 
+                <input type="hidden" name="trolleyType" value={trolleyType} />
+                
                 {trolleyType ? (
-                  <div className="space-y-4">
+                  <div className="space-y-5">
                     {/* Outer Punching */}
-                    <div className="bg-white p-4 rounded-lg border border-purple-100 shadow-sm space-y-4">
-                      <Label className="text-sm text-slate-700 font-bold border-b border-slate-100 pb-2 block">Outer Tools ({trolleyData[trolleyType].outer.grade})</Label>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <div className="bg-white p-4 rounded-xl border border-purple-100 shadow-sm space-y-4">
+                      <div className="flex items-center gap-2 border-b border-slate-100 pb-2 mb-3">
+                        <span className="text-sm text-slate-800 font-bold">Outer Tools</span>
+                        <span className="bg-purple-100 text-purple-700 text-[10px] font-bold px-2 py-0.5 rounded-md border border-purple-200/60 uppercase tracking-wider">
+                          Grade {trolleyData[trolleyType].outer.grade}
+                        </span>
+                      </div>
+                      <div className="space-y-3">
                         {trolleyData[trolleyType].outer.tools.map((tool: string) => (
-                          <div key={tool} className="space-y-1">
-                            <Label className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">{tool}</Label>
-                            <Input name={`tool_outer_${tool}`} type="number" min="0" placeholder="0" className="bg-slate-50 focus-visible:ring-purple-600" />
+                          <div key={tool} className="p-4 bg-slate-50/30 border border-slate-200 rounded-xl shadow-sm hover:border-purple-300 hover:bg-white hover:shadow-md transition-all space-y-3">
+                            {/* Tool Name Header */}
+                            <div className="flex items-center justify-between bg-slate-50/80 border-b border-slate-100 px-4 py-2.5 -mx-4 -mt-4 rounded-t-xl mb-4">
+                              <div className="flex items-center gap-2">
+                                <div className="w-1 h-3.5 rounded bg-purple-600"></div>
+                                <span className="text-xs font-bold text-slate-700 tracking-wider uppercase">{tool}</span>
+                              </div>
+                              <span className="inline-flex items-center bg-purple-50 text-purple-700 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-purple-200/60 shadow-xs uppercase tracking-wider">
+                                Punching Tool
+                              </span>
+                            </div>
+
+                            {/* Controls Grid */}
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                              <div className="space-y-1">
+                                <Label className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider block mb-1">Worker</Label>
+                                <Select 
+                                  name={`emp_outer_${tool}`}
+                                  value={selectedWorkers[`emp_outer_${tool}`] || ""}
+                                  onValueChange={(val) => setSelectedWorkers(prev => ({ ...prev, [`emp_outer_${tool}`]: val ?? "" }))}
+                                >
+                                  <SelectTrigger className={cn(
+                                    "rounded-full h-8 text-xs transition-all px-3 w-fit",
+                                    selectedWorkers[`emp_outer_${tool}`]
+                                      ? "bg-purple-50 border-purple-200 text-purple-700 font-semibold hover:bg-purple-100 hover:border-purple-300"
+                                      : "bg-slate-50/50 border-dashed border-slate-200 text-slate-400 hover:bg-slate-100 hover:border-slate-300"
+                                  )}>
+                                    <span>{getWorkerName(selectedWorkers[`emp_outer_${tool}`])}</span>
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="" className="text-slate-400 italic">None</SelectItem>
+                                    {employees.filter(emp => emp.employee_id).map(emp => (
+                                      <SelectItem key={emp.employee_id} value={emp.employee_id}>
+                                        {emp.name}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div className="space-y-1">
+                                <Label className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider block">Good Qty</Label>
+                                <Input name={`tool_outer_${tool}`} type="number" min="0" placeholder="0" className="bg-white border-slate-200 h-9 text-sm font-semibold focus-visible:ring-purple-600" />
+                              </div>
+                              <div className="space-y-1">
+                                <Label className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider block">Scrap Qty</Label>
+                                <Input name={`scrap_outer_${tool}`} type="number" min="0" placeholder="0" className="bg-white border-slate-200 h-9 text-sm font-semibold focus-visible:ring-purple-600" />
+                              </div>
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -242,13 +388,63 @@ export default function ProductionPage() {
 
                     {/* Middle Punching */}
                     {trolleyData[trolleyType].middle && (
-                      <div className="bg-white p-4 rounded-lg border border-purple-100 shadow-sm space-y-4">
-                        <Label className="text-sm text-slate-700 font-bold border-b border-slate-100 pb-2 block">Middle Tools ({trolleyData[trolleyType].middle.grade})</Label>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                      <div className="bg-white p-4 rounded-xl border border-purple-100 shadow-sm space-y-4">
+                        <div className="flex items-center gap-2 border-b border-slate-100 pb-2 mb-3">
+                          <span className="text-sm text-slate-800 font-bold">Middle Tools</span>
+                          <span className="bg-purple-100 text-purple-700 text-[10px] font-bold px-2 py-0.5 rounded-md border border-purple-200/60 uppercase tracking-wider">
+                            Grade {trolleyData[trolleyType].middle.grade}
+                          </span>
+                        </div>
+                        <div className="space-y-3">
                           {trolleyData[trolleyType].middle.tools.map((tool: string) => (
-                            <div key={tool} className="space-y-1">
-                              <Label className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">{tool}</Label>
-                              <Input name={`tool_middle_${tool}`} type="number" min="0" placeholder="0" className="bg-slate-50 focus-visible:ring-purple-600" />
+                            <div key={tool} className="p-4 bg-slate-50/30 border border-slate-200 rounded-xl shadow-sm hover:border-purple-300 hover:bg-white hover:shadow-md transition-all space-y-3">
+                              {/* Tool Name Header */}
+                              <div className="flex items-center justify-between bg-slate-50/80 border-b border-slate-100 px-4 py-2.5 -mx-4 -mt-4 rounded-t-xl mb-4">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-1 h-3.5 rounded bg-purple-600"></div>
+                                  <span className="text-xs font-bold text-slate-700 tracking-wider uppercase">{tool}</span>
+                                </div>
+                                <span className="inline-flex items-center bg-purple-50 text-purple-700 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-purple-200/60 shadow-xs uppercase tracking-wider">
+                                  Punching Tool
+                                </span>
+                              </div>
+
+                              {/* Controls Grid */}
+                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div className="space-y-1">
+                                  <Label className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider block mb-1">Worker</Label>
+                                  <Select 
+                                    name={`emp_middle_${tool}`}
+                                    value={selectedWorkers[`emp_middle_${tool}`] || ""}
+                                    onValueChange={(val) => setSelectedWorkers(prev => ({ ...prev, [`emp_middle_${tool}`]: val ?? "" }))}
+                                  >
+                                    <SelectTrigger className={cn(
+                                      "rounded-full h-8 text-xs transition-all px-3 w-fit",
+                                      selectedWorkers[`emp_middle_${tool}`]
+                                        ? "bg-purple-50 border-purple-200 text-purple-700 font-semibold hover:bg-purple-100 hover:border-purple-300"
+                                        : "bg-slate-50/50 border-dashed border-slate-200 text-slate-400 hover:bg-slate-100 hover:border-slate-300"
+                                    )}>
+                                      <span>{getWorkerName(selectedWorkers[`emp_middle_${tool}`])}</span>
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="" className="text-slate-400 italic">None</SelectItem>
+                                      {employees.filter(emp => emp.employee_id).map(emp => (
+                                        <SelectItem key={emp.employee_id} value={emp.employee_id}>
+                                          {emp.name}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div className="space-y-1">
+                                  <Label className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider block">Good Qty</Label>
+                                  <Input name={`tool_middle_${tool}`} type="number" min="0" placeholder="0" className="bg-white border-slate-200 h-9 text-sm font-semibold focus-visible:ring-purple-600" />
+                                </div>
+                                <div className="space-y-1">
+                                  <Label className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider block">Scrap Qty</Label>
+                                  <Input name={`scrap_middle_${tool}`} type="number" min="0" placeholder="0" className="bg-white border-slate-200 h-9 text-sm font-semibold focus-visible:ring-purple-600" />
+                                </div>
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -257,13 +453,63 @@ export default function ProductionPage() {
 
                     {/* Inner Punching */}
                     {trolleyData[trolleyType].inner && (
-                      <div className="bg-white p-4 rounded-lg border border-purple-100 shadow-sm space-y-4">
-                        <Label className="text-sm text-slate-700 font-bold border-b border-slate-100 pb-2 block">Inner Tools ({trolleyData[trolleyType].inner.grade})</Label>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                      <div className="bg-white p-4 rounded-xl border border-purple-100 shadow-sm space-y-4">
+                        <div className="flex items-center gap-2 border-b border-slate-100 pb-2 mb-3">
+                          <span className="text-sm text-slate-800 font-bold">Inner Tools</span>
+                          <span className="bg-purple-100 text-purple-700 text-[10px] font-bold px-2 py-0.5 rounded-md border border-purple-200/60 uppercase tracking-wider">
+                            Grade {trolleyData[trolleyType].inner.grade}
+                          </span>
+                        </div>
+                        <div className="space-y-3">
                           {trolleyData[trolleyType].inner.tools.map((tool: string) => (
-                            <div key={tool} className="space-y-1">
-                              <Label className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">{tool}</Label>
-                              <Input name={`tool_inner_${tool}`} type="number" min="0" placeholder="0" className="bg-slate-50 focus-visible:ring-purple-600" />
+                            <div key={tool} className="p-4 bg-slate-50/30 border border-slate-200 rounded-xl shadow-sm hover:border-purple-300 hover:bg-white hover:shadow-md transition-all space-y-3">
+                              {/* Tool Name Header */}
+                              <div className="flex items-center justify-between bg-slate-50/80 border-b border-slate-100 px-4 py-2.5 -mx-4 -mt-4 rounded-t-xl mb-4">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-1 h-3.5 rounded bg-purple-600"></div>
+                                  <span className="text-xs font-bold text-slate-700 tracking-wider uppercase">{tool}</span>
+                                </div>
+                                <span className="inline-flex items-center bg-purple-50 text-purple-700 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-purple-200/60 shadow-xs uppercase tracking-wider">
+                                  Punching Tool
+                                </span>
+                              </div>
+
+                              {/* Controls Grid */}
+                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div className="space-y-1">
+                                  <Label className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider block mb-1">Worker</Label>
+                                  <Select 
+                                    name={`emp_inner_${tool}`}
+                                    value={selectedWorkers[`emp_inner_${tool}`] || ""}
+                                    onValueChange={(val) => setSelectedWorkers(prev => ({ ...prev, [`emp_inner_${tool}`]: val ?? "" }))}
+                                  >
+                                    <SelectTrigger className={cn(
+                                      "rounded-full h-8 text-xs transition-all px-3 w-fit",
+                                      selectedWorkers[`emp_inner_${tool}`]
+                                        ? "bg-purple-50 border-purple-200 text-purple-700 font-semibold hover:bg-purple-100 hover:border-purple-300"
+                                        : "bg-slate-50/50 border-dashed border-slate-200 text-slate-400 hover:bg-slate-100 hover:border-slate-300"
+                                    )}>
+                                      <span>{getWorkerName(selectedWorkers[`emp_inner_${tool}`])}</span>
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="" className="text-slate-400 italic">None</SelectItem>
+                                      {employees.filter(emp => emp.employee_id).map(emp => (
+                                        <SelectItem key={emp.employee_id} value={emp.employee_id}>
+                                          {emp.name}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div className="space-y-1">
+                                  <Label className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider block">Good Qty</Label>
+                                  <Input name={`tool_inner_${tool}`} type="number" min="0" placeholder="0" className="bg-white border-slate-200 h-9 text-sm font-semibold focus-visible:ring-purple-600" />
+                                </div>
+                                <div className="space-y-1">
+                                  <Label className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider block">Scrap Qty</Label>
+                                  <Input name={`scrap_inner_${tool}`} type="number" min="0" placeholder="0" className="bg-white border-slate-200 h-9 text-sm font-semibold focus-visible:ring-purple-600" />
+                                </div>
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -275,6 +521,8 @@ export default function ProductionPage() {
                     Please select a Trolley Type in the Punching Stage to view available Punching Tools.
                   </div>
                 )}
+
+
               </div>
             </div>
 

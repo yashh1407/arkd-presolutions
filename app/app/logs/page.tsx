@@ -8,6 +8,27 @@ function formatToolKey(key: string) {
   return `${section || "tool"}: ${tool || key}`
 }
 
+const TOOL_ORDER = [
+  "2-hole punch",
+  "3-hole",
+  "double-hole",
+  "double hole",
+  "5-hole",
+  "5 hole",
+  "lancing punch",
+  "lancing",
+  "single hole",
+  "apple-cut",
+  "dip",
+  "square"
+]
+
+function getToolOrderIndex(toolKey: string) {
+  const normalizedKey = toolKey.toLowerCase().replace(/_/g, " ")
+  const index = TOOL_ORDER.findIndex(orderTool => normalizedKey.includes(orderTool))
+  return index === -1 ? 999 : index
+}
+
 export default async function MyLogsPage() {
   const result = await getMyLogs()
   const logs = result.success ? (result.data || []) : []
@@ -46,7 +67,7 @@ export default async function MyLogsPage() {
 
               <div className="space-y-4">
                 {/* Cutting Stage Summary */}
-                {(log.cutting_outer_qty > 0 || log.cutting_middle_qty > 0 || log.cutting_inner_qty > 0) && (
+                {(log.cutting_outer_qty > 0 || log.cutting_middle_qty > 0 || log.cutting_inner_qty > 0 || log.cutting_outer_scrap_qty > 0 || log.cutting_middle_scrap_qty > 0 || log.cutting_inner_scrap_qty > 0) && (
                   <div className="bg-blue-50/50 p-3 rounded-xl border border-blue-100">
                     <div className="flex items-center gap-2 text-xs font-bold text-blue-800 mb-2">
                       <Scissors className="w-3 h-3" />
@@ -54,26 +75,29 @@ export default async function MyLogsPage() {
                     </div>
                     <div className="grid grid-cols-3 gap-2">
                       <div className="bg-white p-2 rounded-lg border border-slate-100 shadow-sm text-center">
-                        <div className="text-[10px] text-slate-500 font-semibold uppercase mb-1">Outer</div>
-                        <div className="text-xs font-bold text-slate-800">{log.cutting_outer_qty || 0}</div>
-                        <div className="text-[10px] text-blue-600 font-bold">{log.cutting_outer_grade || '-'}</div>
+                        <div className="text-xs text-slate-500 font-semibold uppercase mb-0.5">Outer</div>
+                        <div className="text-xs font-bold text-slate-800">Q: {log.cutting_outer_qty || 0}</div>
+                        {Number(log.cutting_outer_scrap_qty || 0) > 0 && <div className="text-[11px] text-rose-600 font-bold">S: {log.cutting_outer_scrap_qty}</div>}
+                        <div className="text-[11px] text-blue-600 font-semibold mt-0.5">{log.cutting_outer_grade || '-'}</div>
                       </div>
                       <div className="bg-white p-2 rounded-lg border border-slate-100 shadow-sm text-center">
-                        <div className="text-[10px] text-slate-500 font-semibold uppercase mb-1">Middle</div>
-                        <div className="text-xs font-bold text-slate-800">{log.cutting_middle_qty || 0}</div>
-                        <div className="text-[10px] text-blue-600 font-bold">{log.cutting_middle_grade || '-'}</div>
+                        <div className="text-xs text-slate-500 font-semibold uppercase mb-0.5">Middle</div>
+                        <div className="text-xs font-bold text-slate-800">Q: {log.cutting_middle_qty || 0}</div>
+                        {Number(log.cutting_middle_scrap_qty || 0) > 0 && <div className="text-[11px] text-rose-600 font-bold">S: {log.cutting_middle_scrap_qty}</div>}
+                        <div className="text-[11px] text-blue-600 font-semibold mt-0.5">{log.cutting_middle_grade || '-'}</div>
                       </div>
                       <div className="bg-white p-2 rounded-lg border border-slate-100 shadow-sm text-center">
-                        <div className="text-[10px] text-slate-500 font-semibold uppercase mb-1">Inner</div>
-                        <div className="text-xs font-bold text-slate-800">{log.cutting_inner_qty || 0}</div>
-                        <div className="text-[10px] text-blue-600 font-bold">{log.cutting_inner_grade || '-'}</div>
+                        <div className="text-xs text-slate-500 font-semibold uppercase mb-0.5">Inner</div>
+                        <div className="text-xs font-bold text-slate-800">Q: {log.cutting_inner_qty || 0}</div>
+                        {Number(log.cutting_inner_scrap_qty || 0) > 0 && <div className="text-[11px] text-rose-600 font-bold">S: {log.cutting_inner_scrap_qty}</div>}
+                        <div className="text-[11px] text-blue-600 font-semibold mt-0.5">{log.cutting_inner_grade || '-'}</div>
                       </div>
                     </div>
                   </div>
                 )}
 
                 {/* Punching Stage Summary */}
-                {(log.punching_qty > 0 || log.punching_details) && (
+                {(log.punching_qty > 0 || log.punching_details || log.punching_rejected_details) && (
                   <div className="bg-purple-50/50 p-3 rounded-xl border border-purple-100">
                     <div className="flex justify-between items-center gap-3">
                       <div className="flex items-center gap-2 text-xs font-bold text-purple-800">
@@ -81,19 +105,35 @@ export default async function MyLogsPage() {
                         Punching Stage {log.trolley_type ? `(Trolley ${log.trolley_type})` : ''}
                       </div>
                       <div className="bg-white px-3 py-1.5 rounded-lg border border-slate-100 shadow-sm text-center">
-                        <div className="text-[10px] text-slate-500 font-semibold uppercase mb-0.5">Quantity</div>
+                        <div className="text-xs text-slate-500 font-semibold uppercase mb-0.5">Quantity</div>
                         <div className="text-sm font-black text-slate-800">{log.punching_qty}</div>
                       </div>
                     </div>
-                    {log.punching_details && Object.keys(log.punching_details).length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 mt-3">
-                        {Object.entries(log.punching_details).map(([key, qty]: [string, any]) => (
-                          <span key={key} className="bg-white border border-purple-100 text-purple-700 rounded-lg px-2 py-1 text-[10px] font-bold">
-                            {formatToolKey(key)}: {qty}
-                          </span>
-                        ))}
-                      </div>
-                    )}
+                    {(() => {
+                      const details = log.punching_details || {};
+                      const scrapDetails = log.punching_rejected_details || {};
+                      const suffixes = Array.from(new Set([
+                        ...Object.keys(details).map(k => k.replace(/^tool_/, "")),
+                        ...Object.keys(scrapDetails).map(k => k.replace(/^scrap_/, ""))
+                      ])).sort((a, b) => getToolOrderIndex(a) - getToolOrderIndex(b));
+                      if (suffixes.length === 0) return null;
+                      return (
+                        <div className="flex flex-wrap gap-1.5 mt-3">
+                          {suffixes.map((suffix) => {
+                            const toolKey = `tool_${suffix}`;
+                            const scrapKey = `scrap_${suffix}`;
+                            const qty = details[toolKey] || 0;
+                            const scrap = scrapDetails[scrapKey] || 0;
+                            return (
+                              <span key={suffix} className="bg-white border border-purple-100 text-purple-700 rounded-lg px-2.5 py-1 text-xs font-bold">
+                                {formatToolKey(toolKey)}: {qty}
+                                {scrap > 0 && ` (Scrap: ${scrap})`}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      );
+                    })()}
                   </div>
                 )}
               </div>

@@ -156,71 +156,76 @@ export default function PWAHomeClient({ initialAttendance, userName }: { initial
               </div>
 
               <div className="space-y-4 pt-4 border-t border-slate-100">
+                <div className="flex items-center gap-2">
                   <Label className="text-xs text-slate-800 font-bold">Trolley Details</Label>
-                  
-                  {/* Outer Trolley */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <Label className="text-[10px] text-slate-500 font-semibold uppercase">Outer Grade</Label>
-                      <Select name="cuttingOuterGrade">
-                        <SelectTrigger className="bg-slate-50 border-slate-200 text-sm">
-                          <SelectValue placeholder="Grade" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="" className="text-slate-400 italic">Grade</SelectItem>
-                          <SelectItem value="365">Outer - 365</SelectItem>
-                          <SelectItem value="465">Outer - 465</SelectItem>
-                          <SelectItem value="565">Outer - 565</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-[10px] text-slate-500 font-semibold uppercase">Outer Qty</Label>
-                      <Input name="cuttingOuterQty" type="number" min="0" placeholder="0" className="bg-slate-50 border-slate-200 text-sm" />
-                    </div>
-                  </div>
+                  <Select name="cuttingTrolleyType" value={trolleyType} onValueChange={(value) => setTrolleyType(value ?? "")}>
+                    <SelectTrigger className="bg-slate-50 border-slate-200 w-[70px] h-8 text-xs focus-visible:ring-blue-600">
+                      <SelectValue placeholder="-" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="" className="text-slate-400 italic">None</SelectItem>
+                      <SelectItem value="55">55</SelectItem>
+                      <SelectItem value="65">65</SelectItem>
+                      <SelectItem value="75">75</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                {trolleyType ? (
+                  <div className="space-y-3 mt-3">
+                    {/* Outer Grade */}
+                    {trolleyData[trolleyType].outer && (
+                      <div className="p-3 bg-slate-50/80 border border-slate-200 rounded-xl shadow-sm hover:border-slate-350 transition-all space-y-2.5">
+                        <div className="flex items-center gap-2">
+                          <div className="w-1 h-4 rounded bg-blue-500"></div>
+                          <span className="text-[10px] text-slate-400 font-bold uppercase mr-1">Outer Grade:</span>
+                          <span className="text-xs font-bold text-slate-800">{trolleyData[trolleyType].outer.grade}</span>
+                        </div>
+                        <input type="hidden" name="cuttingOuterGrade" value={trolleyData[trolleyType].outer.grade} />
+                        <div className="grid grid-cols-2 gap-3">
+                          <Input name="cuttingOuterQty" type="number" min="0" placeholder="Qty" className="bg-white border-slate-200 h-8 text-xs font-bold focus-visible:ring-blue-600" />
+                          <Input name="cuttingOuterScrapQty" type="number" min="0" placeholder="Scrap" className="bg-white border-slate-200 h-8 text-xs font-bold focus-visible:ring-blue-600" />
+                        </div>
+                      </div>
+                    )}
 
-                  {/* Middle Trolley */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <Label className="text-[10px] text-slate-500 font-semibold uppercase">Middle Grade</Label>
-                      <Select name="cuttingMiddleGrade">
-                        <SelectTrigger className="bg-slate-50 border-slate-200 text-sm">
-                          <SelectValue placeholder="Grade" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="" className="text-slate-400 italic">Grade</SelectItem>
-                          <SelectItem value="313">Middle - 313</SelectItem>
-                          <SelectItem value="443">Middle - 443</SelectItem>
-                          <SelectItem value="353">Middle - 353</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-[10px] text-slate-500 font-semibold uppercase">Middle Qty</Label>
-                      <Input name="cuttingMiddleQty" type="number" min="0" placeholder="0" className="bg-slate-50 border-slate-200 text-sm" />
-                    </div>
-                  </div>
+                    {/* Middle Grade */}
+                    {trolleyData[trolleyType].middle && (
+                      <div className="p-3 bg-slate-50/80 border border-slate-200 rounded-xl shadow-sm hover:border-slate-350 transition-all space-y-2.5">
+                        <div className="flex items-center gap-2">
+                          <div className="w-1 h-4 rounded bg-blue-500"></div>
+                          <span className="text-[10px] text-slate-400 font-bold uppercase mr-1">Middle Grade:</span>
+                          <span className="text-xs font-bold text-slate-800">{trolleyData[trolleyType].middle.grade}</span>
+                        </div>
+                        <input type="hidden" name="cuttingMiddleGrade" value={trolleyData[trolleyType].middle.grade} />
+                        <div className="grid grid-cols-2 gap-3">
+                          <Input name="cuttingMiddleQty" type="number" min="0" placeholder="Qty" className="bg-white border-slate-200 h-8 text-xs font-bold focus-visible:ring-blue-600" />
+                          <Input name="cuttingMiddleScrapQty" type="number" min="0" placeholder="Scrap" className="bg-white border-slate-200 h-8 text-xs font-bold focus-visible:ring-blue-600" />
+                        </div>
+                      </div>
+                    )}
 
-                  {/* Inner Trolley */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <Label className="text-[10px] text-slate-500 font-semibold uppercase">Inner Grade</Label>
-                      <Select name="cuttingInnerGrade">
-                        <SelectTrigger className="bg-slate-50 border-slate-200 text-sm">
-                          <SelectValue placeholder="Grade" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="" className="text-slate-400 italic">Grade</SelectItem>
-                          <SelectItem value="273">Inner - 273</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-[10px] text-slate-500 font-semibold uppercase">Inner Qty</Label>
-                      <Input name="cuttingInnerQty" type="number" min="0" placeholder="0" className="bg-slate-50 border-slate-200 text-sm" />
-                    </div>
+                    {/* Inner Grade */}
+                    {trolleyData[trolleyType].inner && (
+                      <div className="p-3 bg-slate-50/80 border border-slate-200 rounded-xl shadow-sm hover:border-slate-350 transition-all space-y-2.5">
+                        <div className="flex items-center gap-2">
+                          <div className="w-1 h-4 rounded bg-blue-500"></div>
+                          <span className="text-[10px] text-slate-400 font-bold uppercase mr-1">Inner Grade:</span>
+                          <span className="text-xs font-bold text-slate-800">{trolleyData[trolleyType].inner.grade}</span>
+                        </div>
+                        <input type="hidden" name="cuttingInnerGrade" value={trolleyData[trolleyType].inner.grade} />
+                        <div className="grid grid-cols-2 gap-3">
+                          <Input name="cuttingInnerQty" type="number" min="0" placeholder="Qty" className="bg-white border-slate-200 h-8 text-xs font-bold focus-visible:ring-blue-600" />
+                          <Input name="cuttingInnerScrapQty" type="number" min="0" placeholder="Scrap" className="bg-white border-slate-200 h-8 text-xs font-bold focus-visible:ring-blue-600" />
+                        </div>
+                      </div>
+                    )}
                   </div>
+                ) : (
+                  <div className="text-xs text-slate-500 italic mt-2">
+                    Select a Trolley Type to view cutting grades.
+                  </div>
+                )}
               </div>
             </div>
 
@@ -232,32 +237,25 @@ export default function PWAHomeClient({ initialAttendance, userName }: { initial
                   <Hammer className="w-4 h-4" />
                   Punching Stage
                 </div>
-                <div className="flex items-center gap-2 ml-auto">
-                  <Label className="text-xs text-slate-700 font-semibold whitespace-nowrap">Trolley</Label>
-                  <Select name="trolleyType" value={trolleyType} onValueChange={(value) => setTrolleyType(value ?? "")}>
-                    <SelectTrigger className="bg-white border-slate-200 w-[70px] h-8 text-xs focus-visible:ring-purple-600">
-                      <SelectValue placeholder="-" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="" className="text-slate-400 italic">None</SelectItem>
-                      <SelectItem value="55">55</SelectItem>
-                      <SelectItem value="65">65</SelectItem>
-                      <SelectItem value="75">75</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                <input type="hidden" name="trolleyType" value={trolleyType} />
               </div>
               
               {trolleyType ? (
                 <div className="space-y-4 mt-4">
                   {/* Outer Punching */}
-                  <div className="bg-white p-3 rounded-lg border border-purple-100 shadow-sm space-y-3">
+                  <div className="bg-white p-3 rounded-xl border border-purple-100 shadow-sm space-y-3">
                     <Label className="text-sm text-slate-700 font-bold border-b border-slate-100 pb-2 block">Outer Tools ({trolleyData[trolleyType].outer.grade})</Label>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    <div className="space-y-2">
                       {trolleyData[trolleyType].outer.tools.map((tool: string) => (
-                        <div key={tool} className="space-y-1">
-                          <Label className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">{tool}</Label>
-                          <Input name={`tool_outer_${tool}`} type="number" min="0" placeholder="0" className="bg-slate-50 h-8 text-sm focus-visible:ring-purple-600" />
+                        <div key={tool} className="p-3 bg-slate-50/80 border border-slate-200 rounded-xl shadow-sm hover:border-slate-350 transition-all space-y-2.5">
+                          <div className="flex items-center gap-2">
+                            <div className="w-1 h-4 rounded bg-purple-500"></div>
+                            <span className="text-xs font-bold text-slate-800 truncate" title={tool}>{tool}</span>
+                          </div>
+                          <div className="grid grid-cols-2 gap-3">
+                            <Input name={`tool_outer_${tool}`} type="number" min="0" placeholder="Qty" className="bg-white border-slate-200 h-8 text-xs font-bold focus-visible:ring-purple-600" />
+                            <Input name={`scrap_outer_${tool}`} type="number" min="0" placeholder="Scrap" className="bg-white border-slate-200 h-8 text-xs font-bold focus-visible:ring-purple-600" />
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -265,13 +263,19 @@ export default function PWAHomeClient({ initialAttendance, userName }: { initial
 
                   {/* Middle Punching */}
                   {trolleyData[trolleyType].middle && (
-                    <div className="bg-white p-3 rounded-lg border border-purple-100 shadow-sm space-y-3">
+                    <div className="bg-white p-3 rounded-xl border border-purple-100 shadow-sm space-y-3">
                       <Label className="text-sm text-slate-700 font-bold border-b border-slate-100 pb-2 block">Middle Tools ({trolleyData[trolleyType].middle.grade})</Label>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      <div className="space-y-2">
                         {trolleyData[trolleyType].middle.tools.map((tool: string) => (
-                          <div key={tool} className="space-y-1">
-                            <Label className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">{tool}</Label>
-                            <Input name={`tool_middle_${tool}`} type="number" min="0" placeholder="0" className="bg-slate-50 h-8 text-sm focus-visible:ring-purple-600" />
+                          <div key={tool} className="p-3 bg-slate-50/80 border border-slate-200 rounded-xl shadow-sm hover:border-slate-350 transition-all space-y-2.5">
+                            <div className="flex items-center gap-2">
+                              <div className="w-1 h-4 rounded bg-purple-500"></div>
+                              <span className="text-xs font-bold text-slate-800 truncate" title={tool}>{tool}</span>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                              <Input name={`tool_middle_${tool}`} type="number" min="0" placeholder="Qty" className="bg-white border-slate-200 h-8 text-xs font-bold focus-visible:ring-purple-600" />
+                              <Input name={`scrap_middle_${tool}`} type="number" min="0" placeholder="Scrap" className="bg-white border-slate-200 h-8 text-xs font-bold focus-visible:ring-purple-600" />
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -280,13 +284,19 @@ export default function PWAHomeClient({ initialAttendance, userName }: { initial
 
                   {/* Inner Punching */}
                   {trolleyData[trolleyType].inner && (
-                    <div className="bg-white p-3 rounded-lg border border-purple-100 shadow-sm space-y-3">
+                    <div className="bg-white p-3 rounded-xl border border-purple-100 shadow-sm space-y-3">
                       <Label className="text-sm text-slate-700 font-bold border-b border-slate-100 pb-2 block">Inner Tools ({trolleyData[trolleyType].inner.grade})</Label>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      <div className="space-y-2">
                         {trolleyData[trolleyType].inner.tools.map((tool: string) => (
-                          <div key={tool} className="space-y-1">
-                            <Label className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">{tool}</Label>
-                            <Input name={`tool_inner_${tool}`} type="number" min="0" placeholder="0" className="bg-slate-50 h-8 text-sm focus-visible:ring-purple-600" />
+                          <div key={tool} className="p-3 bg-slate-50/80 border border-slate-200 rounded-xl shadow-sm hover:border-slate-350 transition-all space-y-2.5">
+                            <div className="flex items-center gap-2">
+                              <div className="w-1 h-4 rounded bg-purple-500"></div>
+                              <span className="text-xs font-bold text-slate-800 truncate" title={tool}>{tool}</span>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                              <Input name={`tool_inner_${tool}`} type="number" min="0" placeholder="Qty" className="bg-white border-slate-200 h-8 text-xs font-bold focus-visible:ring-purple-600" />
+                              <Input name={`scrap_inner_${tool}`} type="number" min="0" placeholder="Scrap" className="bg-white border-slate-200 h-8 text-xs font-bold focus-visible:ring-purple-600" />
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -298,6 +308,8 @@ export default function PWAHomeClient({ initialAttendance, userName }: { initial
                   Select a Trolley Type to view punching tools.
                 </div>
               )}
+
+
             </div>
 
             <button type="submit" disabled={savingForm || !isCheckedIn} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-sm transition-all disabled:opacity-50">

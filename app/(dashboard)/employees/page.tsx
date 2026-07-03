@@ -8,7 +8,7 @@ export default async function EmployeesPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold text-text-1">Employees</h1>
+        <h1 className="text-2xl font-bold text-text-1 sm:hidden">Employees</h1>
         <p className="text-sm text-text-3">Manage all employee records from one place</p>
       </div>
       

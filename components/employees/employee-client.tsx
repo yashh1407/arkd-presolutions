@@ -4,13 +4,20 @@ import { useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Search, Plus, Filter, MoreHorizontal, Eye, Edit, Trash2, Users } from "lucide-react"
+import { Search, Plus, Filter, MoreHorizontal, Eye, Edit, Trash2, Users, Loader2 } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import { EmployeeFormDialog } from "./employee-form-dialog"
 import { deleteEmployee } from "@/app/(dashboard)/employees/actions"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
 export default function EmployeeClient({ initialEmployees }: { initialEmployees: any[] }) {
   const [employees, setEmployees] = useState(initialEmployees)
@@ -20,18 +27,21 @@ export default function EmployeeClient({ initialEmployees }: { initialEmployees:
 
   const [formOpen, setFormOpen] = useState(false)
   const [editingEmployee, setEditingEmployee] = useState<any>(null)
+  const [deleteId, setDeleteId] = useState<number | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   // Handlers
   const handleDelete = async (id: number) => {
-    if (confirm("Are you sure you want to delete this employee? This action cannot be undone.")) {
-      const result = await deleteEmployee(id)
-      if (result.success) {
-        toast.success("Employee deleted successfully.")
-        setEmployees(employees.filter(emp => emp.id !== id))
-      } else {
-        toast.error(result.error || "Failed to delete employee.")
-      }
+    setIsDeleting(true)
+    const result = await deleteEmployee(id)
+    if (result.success) {
+      toast.success("Employee deleted successfully.")
+      setEmployees(employees.filter(emp => emp.id !== id))
+    } else {
+      toast.error(result.error || "Failed to delete employee.")
     }
+    setIsDeleting(false)
+    setDeleteId(null)
   }
 
   const handleEdit = (employee: any) => {
@@ -162,7 +172,7 @@ export default function EmployeeClient({ initialEmployees }: { initialEmployees:
                           <DropdownMenuItem onClick={() => handleEdit(emp)} className="cursor-pointer">
                             <Edit className="w-4 h-4 mr-2 text-brand" /> Edit
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleDelete(emp.id)} className="cursor-pointer text-status-error focus:text-status-error focus:bg-status-error/10">
+                          <DropdownMenuItem onClick={() => setDeleteId(emp.id)} className="cursor-pointer text-status-error focus:text-status-error focus:bg-status-error/10">
                             <Trash2 className="w-4 h-4 mr-2" /> Delete
                           </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -184,6 +194,36 @@ export default function EmployeeClient({ initialEmployees }: { initialEmployees:
         // but revalidatePath in actions handles the server cache.
         onSuccess={() => window.location.reload()} 
       />
+
+      <Dialog open={deleteId !== null} onOpenChange={(open) => !open && setDeleteId(null)}>
+        <DialogContent className="max-w-[400px] bg-surface border-border-color shadow-2xl rounded-card p-6">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold text-text-1">Delete Employee</DialogTitle>
+            <DialogDescription className="text-text-3 text-sm mt-2">
+              Are you sure you want to delete this employee? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-3 mt-6">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={isDeleting}
+              onClick={() => setDeleteId(null)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={isDeleting}
+              onClick={() => deleteId !== null && handleDelete(deleteId)}
+              className="bg-status-down hover:bg-status-down/90 text-white font-semibold"
+            >
+              {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Delete"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

@@ -8,6 +8,13 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Loader2, Plus, Banknote, Trash2, IndianRupee } from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
 export function ExpenseForm() {
   const [isLoading, setIsLoading] = useState(false)
@@ -126,9 +133,9 @@ export function ExpenseForm() {
 
 export function ExpenseActions({ id }: { id: number }) {
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
 
   const handleDelete = async () => {
-    if (!confirm("Are you sure you want to delete this expense?")) return
     setIsDeleting(true)
     const res = await deleteExpense(id)
     if (res.success) {
@@ -136,17 +143,50 @@ export function ExpenseActions({ id }: { id: number }) {
     } else {
       toast.error(res.error || "Failed to delete expense")
       setIsDeleting(false)
+      setIsOpen(false)
     }
   }
 
   return (
-    <button 
-      onClick={handleDelete} 
-      disabled={isDeleting}
-      className="p-1.5 text-text-3 hover:text-status-down hover:bg-status-down/10 rounded-md transition-colors"
-      title="Delete Expense"
-    >
-      {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-    </button>
+    <>
+      <button 
+        onClick={() => setIsOpen(true)} 
+        disabled={isDeleting}
+        className="p-1.5 text-text-3 hover:text-status-down hover:bg-status-down/10 rounded-md transition-colors"
+        title="Delete Expense"
+      >
+        {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+      </button>
+
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent className="max-w-[400px] bg-surface border-border-color shadow-2xl rounded-card p-6">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold text-text-1">Delete Expense</DialogTitle>
+            <DialogDescription className="text-text-3 text-sm mt-2">
+              Are you sure you want to delete this expense? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-3 mt-6">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={isDeleting}
+              onClick={() => setIsOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={isDeleting}
+              onClick={handleDelete}
+              className="bg-status-down hover:bg-status-down/90 text-white font-semibold"
+            >
+              {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Delete"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }

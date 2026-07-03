@@ -140,6 +140,42 @@ export async function initDB() {
       )
     `);
 
+    // Powder Coating Table
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS powder_coating_entries (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        date DATE NOT NULL,
+        material_type VARCHAR(255) NOT NULL,
+        qty INT NOT NULL DEFAULT 0,
+        rejection INT NOT NULL DEFAULT 0,
+        powder_used_kg DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Client Material Logs Table
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS client_material_logs (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        client_name VARCHAR(255) DEFAULT 'Neelay Industries',
+        material_in_date DATE NOT NULL,
+        in_qty_kg DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+        reference_name VARCHAR(255) NULL,
+        in_vehicle_no VARCHAR(50) NULL,
+        powder_supplied_kg DECIMAL(10, 2) DEFAULT 0.00,
+        powder_colour VARCHAR(100) NULL,
+        material_out_date DATE NULL,
+        out_qty_kg DECIMAL(10, 2) DEFAULT 0.00,
+        out_vehicle_no VARCHAR(50) NULL,
+        neelay_powder_use DECIMAL(10, 2) DEFAULT 0.00,
+        our_powder_use DECIMAL(10, 2) DEFAULT 0.00,
+        remark VARCHAR(500) NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+
     // employee_attendance Table
     await connection.query(`
       CREATE TABLE IF NOT EXISTS employee_attendance (
@@ -220,6 +256,17 @@ export async function initDB() {
       )
     `);
 
+    // login_attempts Table
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS login_attempts (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        ip_address VARCHAR(45) NOT NULL,
+        email VARCHAR(255) NOT NULL,
+        attempt_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        success TINYINT(1) DEFAULT 0
+      )
+    `);
+
     // 4. Safe, idempotent migrations (adding columns safely)
     try {
       await connection.query(`ALTER TABLE users ADD COLUMN phone VARCHAR(20) NULL`);
@@ -254,7 +301,12 @@ export async function initDB() {
       `ALTER TABLE production_entries ADD COLUMN punching_inner_tool VARCHAR(255) NULL`,
       `ALTER TABLE production_entries ADD COLUMN punching_inner_qty INT DEFAULT 0`,
       `ALTER TABLE production_entries ADD COLUMN punching_details JSON NULL`,
-      `ALTER TABLE employees ADD COLUMN password VARCHAR(255) NULL`
+      `ALTER TABLE employees ADD COLUMN password VARCHAR(255) NULL`,
+      `ALTER TABLE production_entries ADD COLUMN punching_scrap_kg DECIMAL(10, 2) DEFAULT 0.00`,
+      `ALTER TABLE production_entries ADD COLUMN cutting_outer_scrap_qty INT DEFAULT 0`,
+      `ALTER TABLE production_entries ADD COLUMN cutting_middle_scrap_qty INT DEFAULT 0`,
+      `ALTER TABLE production_entries ADD COLUMN cutting_inner_scrap_qty INT DEFAULT 0`,
+      `ALTER TABLE production_entries ADD COLUMN punching_rejected_details JSON NULL`
     ];
 
     for (const q of alterQueries) {

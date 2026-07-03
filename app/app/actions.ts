@@ -23,24 +23,50 @@ function numberField(value: FormDataEntryValue | null) {
   return Number.isFinite(parsed) ? parsed : 0
 }
 
+function calculatePunchingQty(details: Record<string, number> | null | undefined) {
+  if (!details || Object.keys(details).length === 0) return 0
+  const gradeMins: Record<string, number> = {}
+  Object.entries(details).forEach(([key, qty]) => {
+    if (!key.startsWith("tool_")) return
+    const parts = key.split("_")
+    const grade = parts[1] || "unknown"
+    const val = Number(qty || 0)
+    if (gradeMins[grade] === undefined || val < gradeMins[grade]) {
+      gradeMins[grade] = val
+    }
+  })
+  return Object.values(gradeMins).reduce((sum, min) => sum + min, 0)
+}
+
 function collectPunchingDetails(formData: FormData) {
   const details: Record<string, number> = {}
-  let total = 0
+  const scrapDetails: Record<string, number> = {}
+  let totalScrap = 0
 
   Array.from(formData.entries()).forEach(([key, value]) => {
-    if (!key.startsWith("tool_")) return
-
-    const qty = numberField(value)
-    if (qty > 0) {
-      details[key] = qty
-      total += qty
+    if (key.startsWith("tool_")) {
+      const qty = numberField(value)
+      if (qty > 0) {
+        details[key] = qty
+      }
+    } else if (key.startsWith("scrap_")) {
+      const scrap = numberField(value)
+      if (scrap > 0) {
+        scrapDetails[key] = scrap
+        totalScrap += scrap
+      }
     }
   })
 
+  const total = calculatePunchingQty(details)
+
   return {
     details,
+    scrapDetails,
     total,
+    totalScrap,
     json: Object.keys(details).length > 0 ? JSON.stringify(details) : null,
+    scrapJson: Object.keys(scrapDetails).length > 0 ? JSON.stringify(scrapDetails) : null,
   }
 }
 
@@ -184,27 +210,62 @@ export async function submitPWAProductionLog(formData: FormData) {
     const cuttingMachine = optionalString(formData.get("cuttingMachine"))
     const cuttingOuterGrade = optionalString(formData.get("cuttingOuterGrade"))
     const cuttingOuterQty = numberField(formData.get("cuttingOuterQty"))
+    const cuttingOuterScrapQty = numberField(formData.get("cuttingOuterScrapQty"))
     const cuttingMiddleGrade = optionalString(formData.get("cuttingMiddleGrade"))
     const cuttingMiddleQty = numberField(formData.get("cuttingMiddleQty"))
+    const cuttingMiddleScrapQty = numberField(formData.get("cuttingMiddleScrapQty"))
     const cuttingInnerGrade = optionalString(formData.get("cuttingInnerGrade"))
     const cuttingInnerQty = numberField(formData.get("cuttingInnerQty"))
-    const productionQty = cuttingOuterQty + cuttingMiddleQty + cuttingInnerQty
+    const cuttingInnerScrapQty = numberField(formData.get("cuttingInnerScrapQty"))
+    const rawProductionQty = cuttingOuterQty + cuttingMiddleQty + cuttingInnerQty
+    const totalCuttingScrap = cuttingOuterScrapQty + cuttingMiddleScrapQty + cuttingInnerScrapQty
 
     const punchingMachine = optionalString(formData.get("punchingMachine"))
     const punchingDetails = collectPunchingDetails(formData)
     const punchingQty = numberField(formData.get("punchingQty")) || punchingDetails.total
-    const rejectedQty = 0
-    const finalQty = punchingQty
+    const punchingScrapKg = numberField(formData.get("punchingScrapKg"))
+    const rejectedQty = totalCuttingScrap + punchingDetails.totalScrap
+    const productionQty = rawProductionQty + totalCuttingScrap
+    const finalQty = rawProductionQty > 0 ? rawProductionQty - punchingDetails.totalScrap : punchingQty
     const grindingMachine = null
-    const operatorName = session.user.name // Save the user's name
+    const operatorName = session.user.name
 
     const trolleyType = optionalString(formData.get("trolleyType"))
 
     const [result] = await pool.query(
       `INSERT INTO production_entries 
-       (date, material_name, production_qty, target_qty, grinding_qty, machine1_qty, machine2_qty, cutting_machine, punching_machine, punching_qty, rejected_qty, final_qty, grinding_machine, operator_name, cutting_outer_grade, cutting_outer_qty, cutting_middle_grade, cutting_middle_qty, cutting_inner_grade, cutting_inner_qty, employee_id, trolley_type, punching_details) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [date, material, productionQty, targetQty, grindingQty, machine1, machine2, cuttingMachine, punchingMachine, punchingQty, rejectedQty, finalQty, grindingMachine, operatorName, cuttingOuterGrade, cuttingOuterQty, cuttingMiddleGrade, cuttingMiddleQty, cuttingInnerGrade, cuttingInnerQty, session.user.employee_id, trolleyType, punchingDetails.json]
+       (date, material_name, production_qty, target_qty, grinding_qty, machine1_qty, machine2_qty, cutting_machine, punching_machine, punching_qty, rejected_qty, final_qty, grinding_machine, operator_name, cutting_outer_grade, cutting_outer_qty, cutting_middle_grade, cutting_middle_qty, cutting_inner_grade, cutting_inner_qty, employee_id, trolley_type, punching_details, punching_scrap_kg, cutting_outer_scrap_qty, cutting_middle_scrap_qty, cutting_inner_scrap_qty, punching_rejected_details) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        date, 
+        material, 
+        productionQty, 
+        targetQty, 
+        grindingQty, 
+        machine1, 
+        machine2, 
+        cuttingMachine, 
+        punchingMachine, 
+        punchingQty, 
+        rejectedQty, 
+        finalQty, 
+        grindingMachine, 
+        operatorName, 
+        cuttingOuterGrade, 
+        cuttingOuterQty, 
+        cuttingMiddleGrade, 
+        cuttingMiddleQty, 
+        cuttingInnerGrade, 
+        cuttingInnerQty, 
+        session.user.employee_id, 
+        trolleyType, 
+        punchingDetails.json, 
+        punchingScrapKg,
+        cuttingOuterScrapQty,
+        cuttingMiddleScrapQty,
+        cuttingInnerScrapQty,
+        punchingDetails.scrapJson
+      ]
     )
 
     revalidatePath("/app")
@@ -235,6 +296,7 @@ export async function getMyLogs() {
     const safeRows = (rows as any[]).map(row => ({
       ...row,
       punching_details: parsePunchingDetails(row.punching_details),
+      punching_rejected_details: parsePunchingDetails(row.punching_rejected_details),
       date: row.date ? new Date(row.date).toLocaleDateString() : '',
       created_at: row.created_at ? new Date(row.created_at).toLocaleString() : ''
     }))

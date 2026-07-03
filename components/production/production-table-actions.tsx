@@ -28,6 +28,7 @@ import {
 
 export function ProductionTableActions({ prod }: { prod: any }) {
   const [isEditOpen, setIsEditOpen] = useState(false)
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [isUpdating, setIsUpdating] = useState(false)
 
@@ -35,8 +36,6 @@ export function ProductionTableActions({ prod }: { prod: any }) {
   const defaultDate = prod.date ? new Date(prod.date).toISOString().split('T')[0] : ""
 
   const handleDelete = async () => {
-    if (!confirm("Are you sure you want to delete this production entry?")) return
-    
     setIsDeleting(true)
     const result = await deleteProductionEntry(prod.id)
     if (result.success) {
@@ -45,6 +44,7 @@ export function ProductionTableActions({ prod }: { prod: any }) {
       toast.error(result.error || "Failed to delete entry")
     }
     setIsDeleting(false)
+    setIsDeleteOpen(false)
   }
 
   const handleUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -80,7 +80,7 @@ export function ProductionTableActions({ prod }: { prod: any }) {
               Edit Entry
             </DropdownMenuItem>
             <DropdownMenuItem 
-              onClick={handleDelete} 
+              onClick={() => setIsDeleteOpen(true)} 
               disabled={isDeleting}
               className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
             >
@@ -166,6 +166,36 @@ export function ProductionTableActions({ prod }: { prod: any }) {
               </Button>
             </div>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+        <DialogContent className="max-w-[400px] bg-surface border-border-color shadow-2xl rounded-card p-6">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold text-text-1">Delete Production Entry</DialogTitle>
+            <DialogDescription className="text-text-3 text-sm mt-2">
+              Are you sure you want to delete this production entry? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-3 mt-6">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={isDeleting}
+              onClick={() => setIsDeleteOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={isDeleting}
+              onClick={handleDelete}
+              className="bg-status-down hover:bg-status-down/90 text-white font-semibold"
+            >
+              {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Delete"}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </>

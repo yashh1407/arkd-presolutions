@@ -3,6 +3,96 @@ import { BarChart, Activity, AlertTriangle, IndianRupee, Layers, Package, Settin
 import { pool, initDB } from "@/lib/db"
 import { ProductionTableActions } from "@/components/production/production-table-actions"
 
+function calculateTotalProduction(entries: any[]) {
+  const groups: Record<string, {
+    gradeCutting: Record<string, number>
+    gradePunching: Record<string, number>
+    fallbackPunching: number
+    toolQuantities: Record<string, number>
+  }> = {}
+
+  entries.forEach(row => {
+    const dateKey = row.date 
+      ? (row.date instanceof Date ? row.date.toISOString().split('T')[0] : String(row.date).slice(0, 10))
+      : 'unknown'
+      
+    if (!groups[dateKey]) {
+      groups[dateKey] = {
+        gradeCutting: { outer: 0, middle: 0, inner: 0, unknown: 0 },
+        gradePunching: { outer: 0, middle: 0, inner: 0, unknown: 0 },
+        fallbackPunching: 0,
+        toolQuantities: {}
+      }
+    }
+
+    const group = groups[dateKey]
+
+    group.gradeCutting.outer += Math.max(0, Number(row.cutting_outer_qty || 0) - Number(row.cutting_outer_scrap_qty || 0))
+    group.gradeCutting.middle += Math.max(0, Number(row.cutting_middle_qty || 0) - Number(row.cutting_middle_scrap_qty || 0))
+    group.gradeCutting.inner += Math.max(0, Number(row.cutting_inner_qty || 0) - Number(row.cutting_inner_scrap_qty || 0))
+
+    let details = row.punching_details
+    if (typeof details === 'string') {
+      try {
+        details = JSON.parse(details)
+      } catch {
+        details = null
+      }
+    }
+    const punchQty = Number(row.punching_qty || 0)
+
+    if (details && Object.keys(details).length > 0) {
+      Object.entries(details).forEach(([key, qty]) => {
+        if (!key.startsWith("tool_")) return
+        group.toolQuantities[key] = (group.toolQuantities[key] || 0) + Number(qty || 0)
+      })
+    } else if (punchQty > 0) {
+      group.fallbackPunching += punchQty
+    }
+  })
+
+  let grandTotal = 0
+
+  Object.values(groups).forEach(group => {
+    const gradeToolTotals: Record<string, Record<string, number>> = {
+      outer: {},
+      middle: {},
+      inner: {},
+      unknown: {}
+    }
+
+    Object.entries(group.toolQuantities).forEach(([key, qty]) => {
+      const parts = key.split("_")
+      const grade = parts[1] || "unknown"
+      const toolName = parts.slice(2).join("_") || "default"
+      if (!gradeToolTotals[grade]) {
+        gradeToolTotals[grade] = {}
+      }
+      gradeToolTotals[grade][toolName] = Number(qty || 0)
+    })
+
+    const grades = ["outer", "middle", "inner", "unknown"]
+    grades.forEach(g => {
+      const toolTotals = Object.values(gradeToolTotals[g] || {})
+      if (toolTotals.length > 0) {
+        group.gradePunching[g] = Math.min(...toolTotals)
+      } else {
+        group.gradePunching[g] = 0
+      }
+    })
+
+    let dateProd = 0
+    grades.forEach(g => {
+      const cutVal = group.gradeCutting[g] || 0
+      const punchVal = group.gradePunching[g] || 0
+      dateProd += punchVal > 0 ? punchVal : cutVal
+    })
+    grandTotal += dateProd + group.fallbackPunching
+  })
+
+  return grandTotal
+}
+
 export default async function DashboardPage() {
   // Ensure tables exist before querying
   await initDB()
@@ -12,25 +102,32 @@ export default async function DashboardPage() {
   const todayStr = today.toISOString().split('T')[0] // YYYY-MM-DD
   
   const [todayProdRows] = await pool.query(
-    `SELECT SUM(production_qty) as total FROM production_entries WHERE DATE(date) = ?`,
+    `SELECT * FROM production_entries WHERE DATE(date) = ?`,
     [todayStr]
   ) as any[]
   
   const [totalProdRows] = await pool.query(
-    `SELECT SUM(production_qty) as totalProd, SUM(target_qty) as totalTarget FROM production_entries`
+    `SELECT * FROM production_entries`
   ) as any[]
 
   // Calculate Target Achievement %
-  const todayProductionQty = todayProdRows[0]?.total || 0
-  const prodQty = totalProdRows[0]?.totalProd || 0
-  const targetQty = totalProdRows[0]?.totalTarget || 0
+  const todayProductionQty = calculateTotalProduction(todayProdRows)
+  const prodQty = calculateTotalProduction(totalProdRows)
+  
+  const [targetRows] = await pool.query(
+    `SELECT SUM(target_qty) as totalTarget FROM production_entries`
+  ) as any[]
+  const targetQty = targetRows[0]?.totalTarget || 0
   const achievement = targetQty > 0 ? Math.round((prodQty / targetQty) * 100) : 0
 
   // 2. Dispatch Data (Mock for now since table isn't created in initDB yet)
   const pendingDispatch = 0
 
-  // 3. Scrap Data (Mock)
-  const totalScrap = 0
+  // 3. Scrap Data
+  const [scrapRows] = await pool.query(
+    `SELECT SUM(punching_scrap_kg) as total_scrap_kg FROM production_entries`
+  ) as any[]
+  const totalScrap = scrapRows[0]?.total_scrap_kg || 0
 
   // 4. Expenses Data (Mock)
   const monthlyExpenses = 0

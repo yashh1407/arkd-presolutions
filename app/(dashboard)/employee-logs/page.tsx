@@ -50,19 +50,25 @@ export default async function EmployeeLogsPage() {
     cutting_machine: row.cutting_machine || null,
     cutting_outer_grade: row.cutting_outer_grade || null,
     cutting_outer_qty: Number(row.cutting_outer_qty || 0),
+    cutting_outer_scrap_qty: Number(row.cutting_outer_scrap_qty || 0),
     cutting_middle_grade: row.cutting_middle_grade || null,
     cutting_middle_qty: Number(row.cutting_middle_qty || 0),
+    cutting_middle_scrap_qty: Number(row.cutting_middle_scrap_qty || 0),
     cutting_inner_grade: row.cutting_inner_grade || null,
     cutting_inner_qty: Number(row.cutting_inner_qty || 0),
+    cutting_inner_scrap_qty: Number(row.cutting_inner_scrap_qty || 0),
     trolley_type: row.trolley_type || null,
     punching_qty: Number(row.punching_qty || 0),
     punching_details: parsePunchingDetails(row.punching_details),
+    punching_rejected_details: parsePunchingDetails(row.punching_rejected_details),
+    punching_scrap_kg: Number(row.punching_scrap_kg || 0),
+    final_qty: Number(row.final_qty || 0),
   }))
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold text-text-1">Employee Work Logs</h1>
+        <h1 className="text-2xl font-bold text-text-1 sm:hidden">Employee Work Logs</h1>
         <p className="text-sm text-text-3">Track which employee worked on each cutting machine, trolley grade, and punching tool.</p>
       </div>
 

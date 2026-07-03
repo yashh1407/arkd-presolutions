@@ -22,7 +22,8 @@ import {
   Factory,
   Briefcase,
   CalendarCheck,
-  ClipboardList
+  ClipboardList,
+  ArrowLeftRight
 } from "lucide-react"
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -54,6 +55,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { name: "Worker & Machine Log", href: "/workers", icon: Users, section: "Production" },
     { name: "Dispatch", href: "/dispatch", icon: Truck, section: "Production" },
     { name: "Scrap & Rejection", href: "/scrap", icon: Trash2, section: "Production" },
+    { name: "Client Materials", href: "/client-materials", icon: ArrowLeftRight, section: "Production" },
     { name: "Employees", href: "/employees", icon: Briefcase, section: "Team" },
     { name: "Attendance", href: "/attendance", icon: CalendarCheck, section: "Team" },
     { name: "Employee Work Logs", href: "/employee-logs", icon: ClipboardList, section: "Team" },
